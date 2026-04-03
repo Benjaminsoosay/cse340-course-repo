@@ -1,0 +1,8 @@
+{
+    "ext": "js css ejs env",
+    "exec": "node server.js",
+    "ignore": [
+        ".git",
+        "node_modules"
+    ]
+}
