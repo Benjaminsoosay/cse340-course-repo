@@ -2,12 +2,21 @@
 
 <main>
     <h1><%= title %></h1>
-
-    <h2>Upcoming Service Projects</h2>
+    <p>Here are our service projects:</p>
     <ul>
-        <li>Park Cleanup - Join us to clean up local parks and make them beautiful!</li>
-        <li>Food Drive - Help collect and distribute food to those in need.</li>
-        <li>Community Tutoring - Volunteer to tutor students in various subjects.</li>
+        <% projects.forEach(project => { %>
+            <li>
+                <strong><%= project.name %></strong><br>
+                Organization: <%= project.organization_name %><br>
+                Location: <%= project.location %><br>
+                Dates: <%= new Date(project.start_date).toLocaleDateString() %> – 
+                       <%= new Date(project.end_date).toLocaleDateString() %><br>
+                Description: <%= project.description %>
+                <% if (project.image_filename) { %>
+                    <br><img src="/images/<%= project.image_filename %>" alt="<%= project.name %>" style="max-width:200px;">
+                <% } %>
+            </li>
+        <% }); %>
     </ul>
 </main>
 
