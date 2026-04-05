@@ -39,6 +39,13 @@ SELECT * FROM (VALUES
 ) AS v(name, description, organization_id, start_date, end_date, location, image_filename)
 WHERE NOT EXISTS (SELECT 1 FROM projects LIMIT 1);
 
+-- Insert additional projects for May 2026 (always run, they won't duplicate because names are new)
+INSERT INTO projects (name, description, organization_id, start_date, end_date, location, image_filename)
+VALUES 
+('Spring Community Cleanup', 'Join us to clean up local parks and streets.', 2, '2026-05-05', '2026-05-07', 'Detroit, MI', 'cleanup.jpg'),
+('Coding for Kids Workshop', 'Teach programming basics to elementary students.', 1, '2026-05-15', '2026-05-16', 'Portland, OR', 'coding.jpg'),
+('Health & Wellness Fair', 'Free health screenings and wellness workshops.', 3, '2026-05-25', '2026-05-26', 'Austin, TX', 'wellness.jpg');
+
 -- ========================================
 -- Categories Table
 -- ========================================
@@ -73,4 +80,14 @@ JOIN categories c ON
     (p.name = 'School Library Build' AND c.name = 'Education')
     OR (p.name = 'Community Garden' AND c.name = 'Environment')
     OR (p.name = 'Free Health Camp' AND c.name = 'Health & Wellness')
+ON CONFLICT DO NOTHING;
+
+-- Optionally, you can also associate the new May 2026 projects with categories:
+INSERT INTO project_categories (project_id, category_id)
+SELECT p.id, c.id
+FROM projects p
+JOIN categories c ON
+    (p.name = 'Spring Community Cleanup' AND c.name = 'Environment')
+    OR (p.name = 'Coding for Kids Workshop' AND c.name = 'Education')
+    OR (p.name = 'Health & Wellness Fair' AND c.name = 'Health & Wellness')
 ON CONFLICT DO NOTHING;

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> | CSE 340</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('partials/header') %>
+
+    <main>
+        <h1><%= project.title %></h1>
+        <p><strong>Description:</strong> <%= project.description %></p>
+        <p><strong>Date:</strong> <%= project.date.toDateString ? project.date.toDateString() : project.date %></p>
+        <p><strong>Location:</strong> <%= project.location %></p>
+        <p><strong>Organization:</strong> 
+            <a href="/organization/<%= project.organization_id %>"><%= project.organization_name %></a>
+        </p>
+
+        <!-- Category tags -->
+        <% if (categories && categories.length > 0) { %>
+            <div class="category-tags">
+                <strong>Categories:</strong>
+                <% categories.forEach((cat, index) => { %>
+                    <a href="/category/<%= cat.id %>" class="tag"><%= cat.name %></a><%= index < categories.length-1 ? ', ' : '' %>
+                <% }); %>
+            </div>
+        <% } %>
+    </main>
+
+    <%- include('partials/footer') %>
+</body>
+</html>

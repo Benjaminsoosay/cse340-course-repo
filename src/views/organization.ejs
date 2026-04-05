@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> | CSE 340</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('partials/header') %>
+
+    <main>
+        <h1><%= organizationDetails.name %></h1>
+
+        <% if (organizationDetails.logo_filename) { %>
+            <img src="/images/<%= organizationDetails.logo_filename %>" alt="<%= organizationDetails.name %> logo" class="org-logo">
+        <% } %>
+
+        <p class="org-description"><%= organizationDetails.description %></p>
+        <p><strong>Contact:</strong> <a href="mailto:<%= organizationDetails.contact_email %>"><%= organizationDetails.contact_email %></a></p>
+
+        <h2>Service Projects</h2>
+        <% if (projects.length > 0) { %>
+            <ul class="project-list">
+                <% projects.forEach(project => { %>
+                    <li>
+                        <a href="/project/<%= project.project_id %>">
+                            <strong><%= project.name %></strong>
+                        </a>
+                        <p><%= project.description %></p>
+                        <small>Location: <%= project.location %></small>
+                    </li>
+                <% }); %>
+            </ul>
+        <% } else { %>
+            <p>This organization currently has no service projects listed.</p>
+        <% } %>
+    </main>
+
+    <%- include('partials/footer') %>
+</body>
+</html>

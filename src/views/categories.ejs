@@ -1,14 +1,33 @@
-<%- include('partials/header') %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> | CSE 340</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('partials/header') %>
 
-<main>
-    <h1><%= title %></h1>
+    <main>
+        <h1><%= title %></h1>
+        <p>Here are the categories of service projects we support:</p>
+        
+        <% if (categories && categories.length > 0) { %>
+            <ul class="categories-list">
+                <% categories.forEach(category => { %>
+                    <li>
+                        <h3>
+                            <a href="/category/<%= category.id %>"><%= category.name %></a>
+                        </h3>
+                    </li>
+                <% }); %>
+            </ul>
+        <% } else { %>
+            <p>No categories found.</p>
+        <% } %>
+    </main>
 
-    <p>Here are the categories of service projects we support:</p>
-    <ul>
-        <% categories.forEach(category => { %>
-            <li><%= category.name %></li>
-        <% }); %>
-    </ul>
-</main>
-
-<%- include('partials/footer') %>
+    <%- include('partials/footer') %>
+</body>
+</html>

@@ -10,9 +10,11 @@
     <%- include('partials/header') %>
 
     <main>
-        <h1><%= title %></h1>
+        <h1>Category: <%= category.name %></h1>
+
+        <h2>Service Projects</h2>
         <% if (projects && projects.length > 0) { %>
-            <ul class="projects-list">
+            <ul class="project-list">
                 <% projects.forEach(project => { %>
                     <li>
                         <h3>
@@ -28,7 +30,7 @@
                 <% }); %>
             </ul>
         <% } else { %>
-            <p>No upcoming service projects at this time.</p>
+            <p>No projects are currently associated with this category.</p>
         <% } %>
     </main>
 
