@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import session from 'express-session';
-import flash from 'connect-flash';          // ✅ flash middleware
+import flash from 'connect-flash';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { testConnection } from './src/models/db.js';
@@ -55,8 +55,17 @@ app.use((req, res, next) => {
     next();
 });
 
-// 5. Make NODE_ENV available to all templates
+// 5. Make NODE_ENV, login status, user data, and admin flag available to all templates
 app.use((req, res, next) => {
+    // Set isLoggedIn based on session
+    res.locals.isLoggedIn = !!(req.session && req.session.user);
+    if (res.locals.isLoggedIn) {
+        res.locals.user = req.session.user;
+        // Compute isAdmin flag from the user's role_name
+        res.locals.isAdmin = req.session.user.role_name === 'admin';
+    } else {
+        res.locals.isAdmin = false;
+    }
     res.locals.NODE_ENV = NODE_ENV;
     next();
 });
