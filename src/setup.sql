@@ -15,6 +15,32 @@ VALUES
 ('UnityServe Volunteers', 'A volunteer coordination group supporting local charities and service initiatives.', 'hello@unityserve.org', 'unityserve-logo.png');
 
 -- ========================================
+-- Roles Table
+-- ========================================
+CREATE TABLE roles (
+    role_id SERIAL PRIMARY KEY,
+    role_name VARCHAR(50) UNIQUE NOT NULL,
+    role_description TEXT
+);
+
+-- Insert sample roles
+INSERT INTO roles (role_name, role_description) VALUES 
+    ('user', 'Standard user with basic access'),
+    ('admin', 'Administrator with full system access');
+
+-- ========================================
+-- Users Table
+-- ========================================
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role_id INTEGER REFERENCES roles(role_id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ========================================
 -- Projects Table
 -- ========================================
 CREATE TABLE IF NOT EXISTS projects (
@@ -91,3 +117,13 @@ JOIN categories c ON
     OR (p.name = 'Coding for Kids Workshop' AND c.name = 'Education')
     OR (p.name = 'Health & Wellness Fair' AND c.name = 'Health & Wellness')
 ON CONFLICT DO NOTHING;
+
+-- ========================================
+-- Verify roles data was inserted
+-- ========================================
+SELECT * FROM roles;
+
+-- ========================================
+-- Promote the first user (user_id = 1) to admin
+-- ========================================
+UPDATE users SET role_id = (SELECT role_id FROM roles WHERE role_name = 'admin') WHERE user_id = 1;
