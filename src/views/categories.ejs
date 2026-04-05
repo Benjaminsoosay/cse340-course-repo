@@ -19,6 +19,8 @@
                     <li>
                         <h3>
                             <a href="/category/<%= category.id %>"><%= category.name %></a>
+                            &nbsp;–&nbsp;
+                            <a href="/edit-category/<%= category.id %>">Edit</a>
                         </h3>
                     </li>
                 <% }); %>
@@ -26,6 +28,8 @@
         <% } else { %>
             <p>No categories found.</p>
         <% } %>
+
+        <p><a href="/new-category">Add a New Category</a></p>
     </main>
 
     <%- include('partials/footer') %>

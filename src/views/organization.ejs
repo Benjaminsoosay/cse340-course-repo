@@ -19,6 +19,9 @@
         <p class="org-description"><%= organizationDetails.description %></p>
         <p><strong>Contact:</strong> <a href="mailto:<%= organizationDetails.contact_email %>"><%= organizationDetails.contact_email %></a></p>
 
+        <!-- Edit link -->
+        <p><a href="/edit-organization/<%= organizationDetails.organization_id %>">Edit Organization</a></p>
+
         <h2>Service Projects</h2>
         <% if (projects.length > 0) { %>
             <ul class="project-list">

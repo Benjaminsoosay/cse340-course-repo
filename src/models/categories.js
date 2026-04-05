@@ -81,3 +81,93 @@ export const getCategoriesForProject = async (projectId) => {
         throw error;
     }
 };
+
+/**
+ * INTERNAL: Assign a single category to a project in the junction table.
+ * @param {number} categoryId - The category ID
+ * @param {number} projectId - The project ID
+ */
+const assignCategoryToProject = async (categoryId, projectId) => {
+    try {
+        const query = `
+            INSERT INTO project_categories (category_id, project_id)
+            VALUES ($1, $2)
+            ON CONFLICT DO NOTHING;
+        `;
+        await db.query(query, [categoryId, projectId]);
+    } catch (error) {
+        console.error(`Error assigning category ${categoryId} to project ${projectId}:`, error.message);
+        throw error;
+    }
+};
+
+/**
+ * Update category assignments for a project.
+ * Replaces all existing categories with the new list.
+ * @param {number} projectId - The project ID
+ * @param {number[]} categoryIds - Array of category IDs to assign
+ */
+export const updateCategoryAssignments = async (projectId, categoryIds) => {
+    try {
+        // Delete all existing assignments for this project
+        const deleteQuery = `
+            DELETE FROM project_categories
+            WHERE project_id = $1;
+        `;
+        await db.query(deleteQuery, [projectId]);
+
+        // Insert new assignments
+        for (const categoryId of categoryIds) {
+            await assignCategoryToProject(categoryId, projectId);
+        }
+    } catch (error) {
+        console.error(`Error updating category assignments for project ${projectId}:`, error.message);
+        throw error;
+    }
+};
+
+// ==================== NEW MODEL FUNCTIONS FOR CREATE/EDIT CATEGORY ====================
+
+/**
+ * Creates a new category.
+ * @param {string} name - Category name
+ * @returns {number} The ID of the newly created category
+ */
+export const createCategory = async (name) => {
+    const query = `
+        INSERT INTO categories (name)
+        VALUES ($1)
+        RETURNING id;
+    `;
+    const result = await db.query(query, [name.trim()]);
+    if (result.rows.length === 0) {
+        throw new Error('Failed to create category');
+    }
+    if (process.env.ENABLE_SQL_LOGGING === 'true') {
+        console.log('Created new category with ID:', result.rows[0].id);
+    }
+    return result.rows[0].id;
+};
+
+/**
+ * Updates an existing category.
+ * @param {number} categoryId - Category ID
+ * @param {string} name - New category name
+ * @returns {number} The ID of the updated category
+ */
+export const updateCategory = async (categoryId, name) => {
+    const query = `
+        UPDATE categories
+        SET name = $1
+        WHERE id = $2
+        RETURNING id;
+    `;
+    const result = await db.query(query, [name.trim(), categoryId]);
+    if (result.rows.length === 0) {
+        throw new Error('Category not found');
+    }
+    if (process.env.ENABLE_SQL_LOGGING === 'true') {
+        console.log('Updated category with ID:', categoryId);
+    }
+    return result.rows[0].id;
+};

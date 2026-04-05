@@ -1,5 +1,7 @@
 import dotenv from 'dotenv';
 import express from 'express';
+import session from 'express-session';
+import flash from 'connect-flash';          // ✅ flash middleware
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { testConnection } from './src/models/db.js';
@@ -24,9 +26,28 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'src/views'));
 
-// ==================== MIDDLEWARE ====================
+// ==================== MIDDLEWARE (CORRECT ORDER) ====================
 
-// 1. Log all incoming requests (development only)
+// 1. Session management (must be first)
+app.use(session({
+    secret: 'your-secret-key',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 60 * 60 * 1000 } // 1 hour
+}));
+
+// 2. Flash messages (depends on session)
+app.use(flash());
+
+// 3. Make flash messages available to all templates
+app.use((req, res, next) => {
+    res.locals.success_msg = req.flash('success');
+    res.locals.error_msg = req.flash('error');
+    res.locals.error = req.flash('error'); // for compatibility
+    next();
+});
+
+// 4. Logging middleware (development only)
 app.use((req, res, next) => {
     if (NODE_ENV === 'development') {
         console.log(`${req.method} ${req.url}`);
@@ -34,23 +55,22 @@ app.use((req, res, next) => {
     next();
 });
 
-// 2. Make NODE_ENV available to all templates
+// 5. Make NODE_ENV available to all templates
 app.use((req, res, next) => {
     res.locals.NODE_ENV = NODE_ENV;
     next();
 });
 
-// 3. Parse JSON and URL-encoded data
+// 6. Body parsing middleware (handles POST data)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ==================== ROUTES ====================
-// All route definitions are now in src/controllers/routes.js
-app.use(router);
+app.use(router);   // ✅ routes come after all preparatory middleware
 
 // ==================== ERROR HANDLING ====================
 
-// Catch-all route for 404 errors – must be after all routes
+// Catch-all for 404 errors (must be after all routes)
 app.use((req, res, next) => {
     const err = new Error('Page Not Found');
     err.status = 404;

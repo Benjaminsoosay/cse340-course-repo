@@ -14,3 +14,17 @@
             <li><a href="/projects">Projects</a></li>
         </ul>
     </nav>
+
+    <!-- Flash Messages Section (safe check) -->
+    <% if (typeof flash === 'function') { %>
+        <% const messages = flash(); %>
+        <% Object.keys(messages).forEach(type => { %>
+            <% if (messages[type].length > 0) { %>
+                <div class="flash-messages flash-<%= type %>">
+                    <% messages[type].forEach(msg => { %>
+                        <div class="flash-message"><%= msg %></div>
+                    <% }); %>
+                </div>
+            <% } %>
+        <% }); %>
+    <% } %>

@@ -5,26 +5,59 @@ html, body {
     padding: 20px;
 }
 
-body {
-    nav {
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
+nav ul {
+    list-style-type: none;
+    padding: 0;
+}
 
-        li {
-            display: inline;
-            margin-right: 15px;
-        }
+nav li {
+    display: inline;
+    margin-right: 15px;
+}
 
-        a {
-            text-decoration: none;
-            color: #333;
-            font-weight: bold;
+nav a {
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+}
 
-            &:hover {
-                color: #0066cc;
-            }
-        }
-    }
-}                
+nav a:hover {
+    color: #0066cc;
+}
+
+/* Flash message styles */
+.flash-messages {
+    margin: 1rem 0;
+    padding: 0;
+    border-radius: 4px;
+}
+
+.flash-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.flash-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.flash-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.flash-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.flash-message {
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+}
