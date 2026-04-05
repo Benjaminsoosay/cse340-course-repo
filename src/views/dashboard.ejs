@@ -1,0 +1,22 @@
+<%- include('partials/header') %>
+
+<main>
+    <h1><%= title %></h1>
+
+    <h2>Dashboard</h2>
+    <p><strong>Name:</strong> <%= name %></p>
+    <p><strong>Email:</strong> <%= email %></p>
+    <p><strong>Role:</strong> <%= role %></p>
+
+    <% if (isAdmin) { %>
+        <h2>Admin Panel</h2>
+        <ul>
+            <li><a href="/new-organization">Create New Organization</a></li>
+            <li><a href="/new-project">Create New Project</a></li>
+            <li><a href="/new-category">Create New Category</a></li>
+            <li><a href="/admin/users">Manage Users</a></li>
+        </ul>
+    <% } %>
+</main>
+
+<%- include('partials/footer') %>

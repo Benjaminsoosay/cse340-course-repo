@@ -2,6 +2,7 @@
 import { getAllOrganizations, getOrganizationDetails, createOrganization, updateOrganization } from '../models/organizations.js';
 import { getProjectsByOrganizationId } from '../models/projects.js';
 import { body, validationResult } from 'express-validator';
+import db from '../models/db.js';   // ✅ needed for direct delete query
 
 // ==================== VALIDATION RULES ====================
 const organizationValidation = [
@@ -45,7 +46,7 @@ const showOrganizationDetailsPage = async (req, res) => {
 // Controller for the "Add New Organization" form (GET)
 const showNewOrganizationForm = async (req, res) => {
     const title = 'Add New Organization';
-    res.render('new-organization', { title });
+    res.render('new-organization', { title, organization: null });
 };
 
 // Controller to process the form submission (POST)
@@ -107,6 +108,31 @@ const processEditOrganizationForm = async (req, res) => {
     res.redirect(`/organization/${organizationId}`);
 };
 
+// Controller to delete an organization (admin only)
+const deleteOrganization = async (req, res, next) => {
+    const orgId = req.params.id;
+    try {
+        // Check if organization exists
+        const checkQuery = 'SELECT organization_id FROM organization WHERE organization_id = $1';
+        const checkResult = await db.query(checkQuery, [orgId]);
+        if (checkResult.rows.length === 0) {
+            req.flash('error', 'Organization not found.');
+            return res.redirect('/organizations');
+        }
+
+        // Delete the organization (projects will cascade due to ON DELETE CASCADE)
+        const deleteQuery = 'DELETE FROM organization WHERE organization_id = $1';
+        await db.query(deleteQuery, [orgId]);
+
+        req.flash('success', 'Organization deleted successfully.');
+        res.redirect('/organizations');
+    } catch (error) {
+        console.error('Error deleting organization:', error);
+        req.flash('error', 'Unable to delete organization. It may have associated data.');
+        res.redirect('/organizations');
+    }
+};
+
 // ==================== EXPORTS ====================
 export {
     showOrganizationsPage,
@@ -115,5 +141,6 @@ export {
     processNewOrganizationForm,
     organizationValidation,
     showEditOrganizationForm,
-    processEditOrganizationForm
+    processEditOrganizationForm,
+    deleteOrganization   // ✅ export the new function
 };
