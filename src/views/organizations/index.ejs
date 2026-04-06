@@ -1,0 +1,12 @@
+<!-- Inside the loop for each organization -->
+<div class="org-card">
+    <h2><a href="/organization/<%= org.organization_id %>"><%= org.name %></a></h2>
+    <p><%= org.description %></p>
+    <p><strong>Email:</strong> <%= org.contact_email %></p>
+    <% if (isAdmin) { %>
+        <a href="/edit-organization/<%= org.organization_id %>" class="btn">Edit</a>
+        <form action="/delete-organization/<%= org.organization_id %>" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this organization? This will also delete all its projects.');">
+            <button type="submit" class="btn-delete">Delete</button>
+        </form>
+    <% } %>
+</div>

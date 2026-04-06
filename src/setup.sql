@@ -8,6 +8,7 @@ CREATE TABLE organization (
     contact_email VARCHAR(255) NOT NULL,
     logo_filename VARCHAR(255) NOT NULL
 );
+
 INSERT INTO organization (name, description, contact_email, logo_filename)
 VALUES
 ('BrightFuture Builders', 'A nonprofit focused on improving community infrastructure through sustainable construction projects.', 'info@brightfuturebuilders.org', 'brightfuture-logo.png'),
@@ -56,7 +57,6 @@ CREATE TABLE IF NOT EXISTS projects (
 );
 
 -- Insert sample projects only if projects table is empty
--- Note: Cast date strings to DATE using ::date
 INSERT INTO projects (name, description, organization_id, start_date, end_date, location, image_filename)
 SELECT * FROM (VALUES
     ('School Library Build', 'Constructing a library for under-resourced elementary school.', 1, '2025-06-01'::date, '2025-08-30'::date, 'Portland, OR', 'library-build.jpg'),
@@ -65,7 +65,7 @@ SELECT * FROM (VALUES
 ) AS v(name, description, organization_id, start_date, end_date, location, image_filename)
 WHERE NOT EXISTS (SELECT 1 FROM projects LIMIT 1);
 
--- Insert additional projects for May 2026 (always run, they won't duplicate because names are new)
+-- Insert additional projects for May 2026
 INSERT INTO projects (name, description, organization_id, start_date, end_date, location, image_filename)
 VALUES 
 ('Spring Community Cleanup', 'Join us to clean up local parks and streets.', 2, '2026-05-05', '2026-05-07', 'Detroit, MI', 'cleanup.jpg'),
@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS categories (
     name VARCHAR(100) NOT NULL UNIQUE
 );
 
--- Insert categories (safe even if already present)
+-- Insert categories
 INSERT INTO categories (name) VALUES
     ('Education'),
     ('Environment'),
@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS project_categories (
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE
 );
 
--- Associate projects with categories (avoid duplicates)
+-- Associate projects with categories (original)
 INSERT INTO project_categories (project_id, category_id)
 SELECT p.id, c.id
 FROM projects p
@@ -108,7 +108,7 @@ JOIN categories c ON
     OR (p.name = 'Free Health Camp' AND c.name = 'Health & Wellness')
 ON CONFLICT DO NOTHING;
 
--- Optionally, you can also associate the new May 2026 projects with categories:
+-- Associate the new May 2026 projects with categories
 INSERT INTO project_categories (project_id, category_id)
 SELECT p.id, c.id
 FROM projects p
@@ -119,11 +119,25 @@ JOIN categories c ON
 ON CONFLICT DO NOTHING;
 
 -- ========================================
--- Verify roles data was inserted
+-- NEW: Junction Table for Users <-> Projects (Volunteers)
+-- ========================================
+CREATE TABLE user_project_volunteers (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    project_id INT NOT NULL,
+    volunteered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    UNIQUE (user_id, project_id)  -- Prevents duplicate volunteer entries
+);
+
+-- ========================================
+-- Verify roles data
 -- ========================================
 SELECT * FROM roles;
 
 -- ========================================
 -- Promote the first user (user_id = 1) to admin
+-- (Assumes a user with user_id = 1 exists; otherwise this has no effect)
 -- ========================================
 UPDATE users SET role_id = (SELECT role_id FROM roles WHERE role_name = 'admin') WHERE user_id = 1;

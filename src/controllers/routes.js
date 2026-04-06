@@ -1,6 +1,8 @@
 import express from 'express';
 
-import { showHomePage } from './index.js';
+// ✅ CHANGED: import from homeController.js instead of index.js
+import { showHomePage } from './homeController.js';
+
 import {
     showOrganizationsPage,
     showOrganizationDetailsPage,
@@ -9,7 +11,7 @@ import {
     organizationValidation,
     showEditOrganizationForm,
     processEditOrganizationForm,
-    deleteOrganization                     // ✅ added delete controller
+    deleteOrganization
 } from './organizations.js';
 import {
     showProjectsPage,
@@ -19,6 +21,7 @@ import {
     projectValidation,
     showEditProjectForm,
     processEditProjectForm
+    // ❌ REMOVED volunteer exports from projects.js
 } from './projects.js';
 import {
     showCategoriesPage,
@@ -43,6 +46,13 @@ import {
     showUsersPage
 } from './users.js';
 import { testErrorPage } from './errors.js';
+
+// ✅ NEW import from volunteerController
+import { 
+    handleAddVolunteer, 
+    handleRemoveVolunteer, 
+    showVolunteeringPage 
+} from './volunteerController.js';
 
 const router = express.Router();
 
@@ -73,7 +83,7 @@ router.get('/new-organization', requireLogin, requireRole('admin'), showNewOrgan
 router.post('/new-organization', requireLogin, requireRole('admin'), organizationValidation, processNewOrganizationForm);
 router.get('/edit-organization/:id', requireLogin, requireRole('admin'), showEditOrganizationForm);
 router.post('/edit-organization/:id', requireLogin, requireRole('admin'), organizationValidation, processEditOrganizationForm);
-router.post('/delete-organization/:id', requireLogin, requireRole('admin'), deleteOrganization);   // ✅ new delete route
+router.post('/delete-organization/:id', requireLogin, requireRole('admin'), deleteOrganization);
 
 // Project creation / editing
 router.get('/new-project', requireLogin, requireRole('admin'), showNewProjectForm);
@@ -90,6 +100,14 @@ router.post('/edit-category/:id', requireLogin, requireRole('admin'), categoryVa
 // Assign categories to a project (admin only)
 router.get('/assign-categories/:projectId', requireLogin, requireRole('admin'), showAssignCategoriesForm);
 router.post('/assign-categories/:projectId', requireLogin, requireRole('admin'), processAssignCategoriesForm);
+
+// ============================================
+// Volunteer routes (require login)
+// ============================================
+// ✅ Using volunteerController handlers (GET methods for simplicity)
+router.get('/projects/:id/volunteer', requireLogin, handleAddVolunteer);
+router.get('/projects/:id/remove-volunteer', requireLogin, handleRemoveVolunteer);
+router.get('/volunteering', requireLogin, showVolunteeringPage);
 
 // ============================================
 // User authentication routes (public)

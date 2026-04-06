@@ -28,6 +28,18 @@
             </div>
         <% } %>
 
+        <!-- Volunteer section -->
+        <% if (user) { %>
+            <div class="volunteer-section">
+                <% if (userIsVolunteer) { %>
+                    <p>You are volunteering for this project.</p>
+                    <a href="/projects/<%= project.project_id %>/remove-volunteer">Remove me as volunteer</a>
+                <% } else { %>
+                    <a href="/projects/<%= project.project_id %>/volunteer">Volunteer for this project</a>
+                <% } %>
+            </div>
+        <% } %>
+
         <!-- Action links -->
         <p><a href="/assign-categories/<%= project.project_id %>">Edit Categories</a></p>
         <p><a href="/edit-project/<%= project.project_id %>">Edit Project</a></p>

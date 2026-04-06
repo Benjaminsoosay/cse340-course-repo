@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import { createUser, authenticateUser, getAllUsers } from '../models/users.js';
+import { getUserVolunteerProjects } from '../models/volunteerModel.js';  // ✅ added
 
 // ==================== REGISTRATION CONTROLLERS ====================
 const showUserRegistrationForm = (req, res) => {
@@ -10,14 +11,11 @@ const processUserRegistrationForm = async (req, res) => {
     const { name, email, password } = req.body;
 
     try {
-        // Hash the password before storing it
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(password, salt);
 
-        // Create the user in the database
         const userId = await createUser(name, email, passwordHash);
 
-        // Redirect to the home page after successful registration
         req.flash('success', 'Registration successful! Please log in.');
         res.redirect('/');
     } catch (error) {
@@ -38,7 +36,6 @@ const processLoginForm = async (req, res) => {
     try {
         const user = await authenticateUser(email, password);
         if (user) {
-            // Store user info in session (includes role_name)
             req.session.user = user;
             req.flash('success', 'Login successful!');
 
@@ -46,7 +43,6 @@ const processLoginForm = async (req, res) => {
                 console.log('User logged in:', user);
             }
 
-            // Redirect to dashboard after successful login
             res.redirect('/dashboard');
         } else {
             req.flash('error', 'Invalid email or password.');
@@ -77,51 +73,48 @@ const requireLogin = (req, res, next) => {
     next();
 };
 
-/**
- * Middleware factory to require specific role for route access
- * Returns middleware that checks if user has the required role
- * 
- * @param {string} role - The role name required (e.g., 'admin', 'user')
- * @returns {Function} Express middleware function
- */
 const requireRole = (role) => {
     return (req, res, next) => {
-        // Check if user is logged in first
         if (!req.session || !req.session.user) {
             req.flash('error', 'You must be logged in to access this page.');
             return res.redirect('/login');
         }
 
-        // Check if user's role matches the required role
         if (req.session.user.role_name !== role) {
             req.flash('error', 'You do not have permission to access this page.');
             return res.redirect('/');
         }
 
-        // User has required role, continue
         next();
     };
 };
 
-// ==================== DASHBOARD CONTROLLER ====================
-const showDashboard = (req, res) => {
-    const user = req.session.user;
-    res.render('dashboard', { 
-        title: 'Dashboard',
-        name: user.name,
-        email: user.email,
-        role: user.role_name || 'user'
-    });
+// ==================== DASHBOARD CONTROLLER (UPDATED) ====================
+const showDashboard = async (req, res) => {
+    try {
+        const userId = req.session.user.user_id;   // ✅ adjust if your user object uses 'id' instead
+        const volunteeredProjects = await getUserVolunteerProjects(userId);
+
+        res.render('dashboard', {
+            title: 'Dashboard',
+            name: req.session.user.name,
+            email: req.session.user.email,
+            role: req.session.user.role_name || 'user',
+            user: req.session.user,                // ✅ pass full user for navbar, etc.
+            volunteeredProjects: volunteeredProjects   // ✅ for the volunteer list
+        });
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+        req.flash('error', 'Unable to load dashboard.');
+        res.redirect('/');
+    }
 };
 
 // ==================== ADMIN USER MANAGEMENT CONTROLLER ====================
-/**
- * Admin only – show list of all registered users
- */
 const showUsersPage = async (req, res, next) => {
     try {
         const users = await getAllUsers();
-        res.render('admin-users', { 
+        res.render('admin-users', {
             title: 'Manage Users',
             users
         });
@@ -131,8 +124,8 @@ const showUsersPage = async (req, res, next) => {
 };
 
 // ==================== EXPORTS ====================
-export { 
-    showUserRegistrationForm, 
+export {
+    showUserRegistrationForm,
     processUserRegistrationForm,
     showLoginForm,
     processLoginForm,
@@ -140,5 +133,5 @@ export {
     requireLogin,
     requireRole,
     showDashboard,
-    showUsersPage   // <-- exported for use in routes
+    showUsersPage
 };

@@ -1,0 +1,17 @@
+<!-- Inside your project details template -->
+<% if (user) { %>
+    <div class="volunteer-section">
+        <% if (isVolunteer) { %>
+            <p class="volunteer-status">You are volunteering for this project.</p>
+            <form action="/projects/<%= project.id %>/volunteer/remove" method="POST">
+                <button type="submit" class="btn btn-outline-danger">Remove Me as Volunteer</button>
+            </form>
+        <% } else { %>
+            <form action="/projects/<%= project.id %>/volunteer" method="POST">
+                <button type="submit" class="btn btn-success">Volunteer for This Project</button>
+            </form>
+        <% } %>
+    </div>
+<% } else { %>
+    <p><a href="/login">Log in</a> to volunteer for this project.</p>
+<% } %>

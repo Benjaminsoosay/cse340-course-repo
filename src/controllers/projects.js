@@ -2,6 +2,7 @@ import { getUpcomingProjects, getProjectDetails, createProject, updateProject } 
 import { getCategoriesForProject } from '../models/categories.js';
 import { getAllOrganizations } from '../models/organizations.js';
 import { body, validationResult } from 'express-validator';
+import { isVolunteer } from '../models/volunteerModel.js';   // ✅ function to check if user volunteers
 
 const NUMBER_OF_UPCOMING_PROJECTS = 5;
 
@@ -28,6 +29,7 @@ const projectValidation = [
 ];
 
 // ==================== CONTROLLER FUNCTIONS ====================
+
 // Controller for the main projects page (shows upcoming projects)
 const showProjectsPage = async (req, res, next) => {
     try {
@@ -39,7 +41,7 @@ const showProjectsPage = async (req, res, next) => {
     }
 };
 
-// Controller for a single project details page
+// Controller for a single project details page (includes volunteer check)
 const showProjectDetailsPage = async (req, res, next) => {
     try {
         const projectId = req.params.id;
@@ -53,8 +55,22 @@ const showProjectDetailsPage = async (req, res, next) => {
         
         // Get categories for this project
         const categories = await getCategoriesForProject(projectId);
+        
+        // ✅ Check if logged-in user is a volunteer for this project
+        let userIsVolunteer = false;
+        const user = req.session.user || null;   // get user from session
+        if (user && user.id) {
+            userIsVolunteer = await isVolunteer(user.id, projectId);
+        }
+        
         const title = project.title || 'Project Details';
-        res.render('project', { title, project, categories });
+        res.render('project', { 
+            title, 
+            project, 
+            categories, 
+            userIsVolunteer,   // ✅ boolean flag for the view
+            user               // ✅ full user object (may be null)
+        });
     } catch (error) {
         next(error);
     }
