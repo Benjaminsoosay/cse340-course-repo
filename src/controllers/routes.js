@@ -21,7 +21,6 @@ import {
     projectValidation,
     showEditProjectForm,
     processEditProjectForm
-    // ❌ REMOVED volunteer exports from projects.js
 } from './projects.js';
 import {
     showCategoriesPage,
@@ -47,7 +46,7 @@ import {
 } from './users.js';
 import { testErrorPage } from './errors.js';
 
-// ✅ NEW import from volunteerController
+// ✅ Import volunteer controllers
 import { 
     handleAddVolunteer, 
     handleRemoveVolunteer, 
@@ -102,11 +101,10 @@ router.get('/assign-categories/:projectId', requireLogin, requireRole('admin'), 
 router.post('/assign-categories/:projectId', requireLogin, requireRole('admin'), processAssignCategoriesForm);
 
 // ============================================
-// Volunteer routes (require login)
+// Volunteer routes (using POST and requireLogin)  ✅ CHANGED from GET to POST
 // ============================================
-// ✅ Using volunteerController handlers (GET methods for simplicity)
-router.get('/projects/:id/volunteer', requireLogin, handleAddVolunteer);
-router.get('/projects/:id/remove-volunteer', requireLogin, handleRemoveVolunteer);
+router.post('/projects/:id/volunteer', requireLogin, handleAddVolunteer);
+router.post('/projects/:id/remove-volunteer', requireLogin, handleRemoveVolunteer);
 router.get('/volunteering', requireLogin, showVolunteeringPage);
 
 // ============================================
