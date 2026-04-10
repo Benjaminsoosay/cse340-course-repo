@@ -11,28 +11,34 @@
 
     <main>
         <h1><%= title %></h1>
-        <% if (projects && projects.length > 0) { %>
-            <ul class="projects-list">
-                <% projects.forEach(project => { %>
-                    <li>
-                        <h3>
-                            <a href="/project/<%= project.project_id %>"><%= project.title %></a>
-                        </h3>
-                        <p><%= project.description %></p>
-                        <p><strong>Date:</strong> <%= project.date.toDateString ? project.date.toDateString() : project.date %></p>
-                        <p><strong>Location:</strong> <%= project.location %></p>
-                        <p><strong>Organization:</strong> 
-                            <a href="/organization/<%= project.organization_id %>"><%= project.organization_name %></a>
-                        </p>
-                    </li>
-                <% }); %>
-            </ul>
-        <% } else { %>
-            <p>No upcoming service projects at this time.</p>
-        <% } %>
 
-        <!-- Link to add a new service project -->
-        <p><a href="/new-project">Add a New Service Project</a></p>
+        <% if (projects && projects.length > 0) { %>
+            <div class="projects-list">
+                <% projects.forEach(project => { %>
+                    <div class="project-card">
+                        <h2><%= project.name %></h2>
+                        <p><%= project.description %></p>
+                        <p><strong>Organization:</strong> <%= project.organization_name %></p>
+                        <p><strong>Date:</strong> <%= new Date(project.start_date).toLocaleDateString() %></p>
+                        <p><strong>Location:</strong> <%= project.location %></p>
+
+                        <!-- ✅ Volunteer form – only show if project.id exists -->
+                        <% if (project && project.id) { %>
+                            <form action="/projects/<%= project.id %>/volunteer" method="POST">
+                                <button type="submit" class="btn btn-primary">Volunteer for this project</button>
+                            </form>
+                        <% } else { %>
+                            <!-- fallback: show a link to the project detail page -->
+                            <a href="/project/<%= project.id %>">View details to volunteer</a>
+                        <% } %>
+
+                        <p><a href="/project/<%= project.id %>">More details →</a></p>
+                    </div>
+                <% }); %>
+            </div>
+        <% } else { %>
+            <p>No upcoming projects at this time.</p>
+        <% } %>
     </main>
 
     <%- include('partials/footer') %>

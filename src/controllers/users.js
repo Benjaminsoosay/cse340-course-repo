@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { createUser, authenticateUser, getAllUsers } from '../models/users.js';
-import { getUserVolunteerProjects } from '../models/volunteerModel.js';  // ✅ added
+import { getUserVolunteerProjects } from '../models/volunteerModel.js';
 
 // ==================== REGISTRATION CONTROLLERS ====================
 const showUserRegistrationForm = (req, res) => {
@@ -89,19 +89,24 @@ const requireRole = (role) => {
     };
 };
 
-// ==================== DASHBOARD CONTROLLER (UPDATED) ====================
+// ==================== DASHBOARD CONTROLLER (CORRECTED) ====================
 const showDashboard = async (req, res) => {
     try {
-        const userId = req.session.user.user_id;   // ✅ adjust if your user object uses 'id' instead
-        const volunteeredProjects = await getUserVolunteerProjects(userId);
+        const userId = req.session.user.user_id;
+        // Fetch projects the user is volunteering for
+        const volunteeringProjects = await getUserVolunteerProjects(userId);
+
+        // Prepare user object with a 'role' property for the view
+        const userForView = {
+            ...req.session.user,
+            role: req.session.user.role_name   // ensure view can use user.role
+        };
 
         res.render('dashboard', {
             title: 'Dashboard',
-            name: req.session.user.name,
-            email: req.session.user.email,
-            role: req.session.user.role_name || 'user',
-            user: req.session.user,                // ✅ pass full user for navbar, etc.
-            volunteeredProjects: volunteeredProjects   // ✅ for the volunteer list
+            user: userForView,                  // full user object with .role
+            volunteeringProjects: volunteeringProjects, // matches view variable name
+            isAdmin: req.session.user.role_name === 'admin'
         });
     } catch (error) {
         console.error('Error loading dashboard:', error);

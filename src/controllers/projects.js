@@ -2,7 +2,7 @@ import { getUpcomingProjects, getProjectDetails, createProject, updateProject } 
 import { getCategoriesForProject } from '../models/categories.js';
 import { getAllOrganizations } from '../models/organizations.js';
 import { body, validationResult } from 'express-validator';
-import { isVolunteer } from '../models/volunteerModel.js';   // ✅ function to check if user volunteers
+import { isVolunteer } from '../models/volunteerModel.js';
 
 const NUMBER_OF_UPCOMING_PROJECTS = 5;
 
@@ -33,7 +33,15 @@ const projectValidation = [
 // Controller for the main projects page (shows upcoming projects)
 const showProjectsPage = async (req, res, next) => {
     try {
-        const projects = await getUpcomingProjects(NUMBER_OF_UPCOMING_PROJECTS);
+        let projects = await getUpcomingProjects(NUMBER_OF_UPCOMING_PROJECTS);
+        
+        // Ensure each project has an 'id' and a 'name' property for the view
+        projects = projects.map(project => ({
+            ...project,
+            id: project.project_id || project.id,   // use project_id if id missing
+            name: project.title || project.name     // use title if name missing
+        }));
+        
         const title = 'Upcoming Service Projects';
         res.render('projects', { title, projects });
     } catch (error) {
@@ -45,7 +53,7 @@ const showProjectsPage = async (req, res, next) => {
 const showProjectDetailsPage = async (req, res, next) => {
     try {
         const projectId = req.params.id;
-        const project = await getProjectDetails(projectId);
+        let project = await getProjectDetails(projectId);
         
         if (!project) {
             const err = new Error('Project not found');
@@ -53,23 +61,30 @@ const showProjectDetailsPage = async (req, res, next) => {
             return next(err);
         }
         
+        // Ensure project has an 'id' and 'name' property
+        project = {
+            ...project,
+            id: project.project_id || project.id,
+            name: project.title || project.name
+        };
+        
         // Get categories for this project
         const categories = await getCategoriesForProject(projectId);
         
-        // ✅ Check if logged-in user is a volunteer for this project
+        // Check if logged-in user is a volunteer for this project
         let userIsVolunteer = false;
-        const user = req.session.user || null;   // get user from session
-        if (user && user.id) {
-            userIsVolunteer = await isVolunteer(user.id, projectId);
+        const user = req.session.user || null;
+        if (user && user.user_id) {  // assuming session stores user_id
+            userIsVolunteer = await isVolunteer(user.user_id, projectId);
         }
         
-        const title = project.title || 'Project Details';
+        const title = project.name;
         res.render('project', { 
             title, 
             project, 
             categories, 
-            userIsVolunteer,   // ✅ boolean flag for the view
-            user               // ✅ full user object (may be null)
+            userIsVolunteer,
+            user
         });
     } catch (error) {
         next(error);
@@ -114,12 +129,18 @@ const processNewProjectForm = async (req, res, next) => {
 const showEditProjectForm = async (req, res, next) => {
     try {
         const projectId = req.params.id;
-        const project = await getProjectDetails(projectId);
+        let project = await getProjectDetails(projectId);
         if (!project) {
             const err = new Error('Project not found');
             err.status = 404;
             return next(err);
         }
+        // Ensure project has id and name
+        project = {
+            ...project,
+            id: project.project_id || project.id,
+            name: project.title || project.name
+        };
         const organizations = await getAllOrganizations();
         const title = 'Edit Service Project';
         res.render('update-project', { title, project, organizations });

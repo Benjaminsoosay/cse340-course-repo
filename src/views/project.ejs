@@ -3,48 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %> | CSE 340</title>
+    <title><%= project.name %> | CSE 340</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <%- include('partials/header') %>
 
     <main>
-        <h1><%= project.title %></h1>
-        <p><strong>Description:</strong> <%= project.description %></p>
-        <p><strong>Date:</strong> <%= project.date.toDateString ? project.date.toDateString() : project.date %></p>
-        <p><strong>Location:</strong> <%= project.location %></p>
-        <p><strong>Organization:</strong> 
-            <a href="/organization/<%= project.organization_id %>"><%= project.organization_name %></a>
-        </p>
+        <h1><%= project.name %></h1>
 
-        <!-- Category tags -->
-        <% if (categories && categories.length > 0) { %>
-            <div class="category-tags">
-                <strong>Categories:</strong>
-                <% categories.forEach((cat, index) => { %>
-                    <a href="/category/<%= cat.id %>" class="tag"><%= cat.name %></a><%= index < categories.length-1 ? ', ' : '' %>
-                <% }); %>
-            </div>
-        <% } %>
+        <p><strong>Organization:</strong> <a href="/organization/<%= project.organization_id %>"><%= project.organization_name %></a></p>
+        <p><strong>Location:</strong> <%= project.location %></p>
+        <p><strong>Date:</strong> <%= new Date(project.start_date).toLocaleDateString() %></p>
+        <p><strong>Description:</strong> <%= project.description %></p>
 
         <!-- Volunteer section -->
         <% if (user) { %>
             <div class="volunteer-section">
                 <% if (userIsVolunteer) { %>
-                    <p>You are volunteering for this project.</p>
-                    <a href="/projects/<%= project.project_id %>/remove-volunteer">Remove me as volunteer</a>
+                    <p class="volunteer-status">You are volunteering for this project.</p>
+                    <form action="/projects/<%= project.id %>/remove-volunteer" method="POST">
+                        <button type="submit" class="btn btn-danger">Remove me as volunteer</button>
+                    </form>
                 <% } else { %>
-                    <a href="/projects/<%= project.project_id %>/volunteer">Volunteer for this project</a>
+                    <form action="/projects/<%= project.id %>/volunteer" method="POST">
+                        <button type="submit" class="btn btn-primary">Volunteer for this project</button>
+                    </form>
                 <% } %>
             </div>
+        <% } else { %>
+            <p><a href="/login">Log in</a> to volunteer for this project.</p>
         <% } %>
 
-        <!-- Action links -->
-        <p><a href="/assign-categories/<%= project.project_id %>">Edit Categories</a></p>
-        <p><a href="/edit-project/<%= project.project_id %>">Edit Project</a></p>
+        <p><a href="/projects">← Back to all projects</a></p>
     </main>
 
     <%- include('partials/footer') %>
 </body>
-</html>>
+</html>

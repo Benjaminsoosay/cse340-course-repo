@@ -3,10 +3,19 @@ import { Pool } from 'pg';
 
 dotenv.config();
 
-// Force SSL for Render (required)
+// Use DATABASE_URL (primary) or DB_URL (legacy)
+const connectionString = process.env.DATABASE_URL || process.env.DB_URL;
+
+// Enable SSL only for Render (or any remote host that requires it)
+const useSSL = connectionString && (
+  connectionString.includes('render.com') ||
+  process.env.DB_SSL === 'true' ||
+  process.env.NODE_ENV === 'production'
+);
+
 const pool = new Pool({
-  connectionString: process.env.DB_URL,
-  ssl: { rejectUnauthorized: false },
+  connectionString: connectionString,
+  ssl: useSSL ? { rejectUnauthorized: false } : false,
 });
 
 let db = null;

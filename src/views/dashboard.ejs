@@ -4,28 +4,28 @@
     <h1><%= title %></h1>
 
     <h2>Dashboard</h2>
-    <p><strong>Name:</strong> <%= name %></p>
-    <p><strong>Email:</strong> <%= email %></p>
-    <p><strong>Role:</strong> <%= role %></p>
+    <p><strong>Name:</strong> <%= user.name %></p>
+    <p><strong>Email:</strong> <%= user.email %></p>
+    <p><strong>Role:</strong> <%= user.role %></p>
 
-    <!-- NEW: Volunteered Projects Section -->
     <h2>Projects You Are Volunteering For</h2>
 
-    <% if (volunteeredProjects && volunteeredProjects.length > 0) { %>
-        <div class="volunteer-list">
-            <% volunteeredProjects.forEach(project => { %>
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title"><%= project.name %></h5>
-                        <p class="card-text"><%= project.description %></p>
-                        <p><strong>Organization:</strong> <%= project.organization_name %></p>
-                        <p><strong>Dates:</strong> <%= project.start_date %> to <%= project.end_date %></p>
-                        <form action="/projects/<%= project.id %>/volunteer/remove" method="POST">
-                            <button type="submit" class="btn btn-danger btn-sm">Remove Volunteering</button>
-                        </form>
-                    </div>
+    <% if (volunteeringProjects && volunteeringProjects.length > 0) { %>
+        <div class="projects-list">
+            <% volunteeringProjects.forEach(project => { %>
+                <div class="project-card">
+                    <h3><%= project.name %></h3>
+                    <p><%= project.description %></p>
+                    <p><strong>Organization:</strong> <%= project.organization_name %></p>
+                    <p><strong>Date:</strong> 
+                        <%= project.start_date ? new Date(project.start_date).toLocaleDateString() : 'TBD' %>
+                    </p>
+                    <!-- If you have end_date, add it similarly -->
+                    <form action="/projects/<%= project.id %>/remove-volunteer" method="POST">
+                        <button type="submit" class="btn btn-danger">Remove Volunteering</button>
+                    </form>
                 </div>
-            <% }) %>
+            <% }); %>
         </div>
     <% } else { %>
         <p>You haven't volunteered for any projects yet. <a href="/projects">Browse projects</a> to get started.</p>
