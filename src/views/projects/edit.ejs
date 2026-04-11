@@ -1,0 +1,33 @@
+<h1>Edit Project</h1>
+<form method="POST">
+    <div class="form-group">
+        <label>Name</label>
+        <input type="text" name="name" value="<%= project.name %>" required>
+    </div>
+    <div class="form-group">
+        <label>Description</label>
+        <textarea name="description" required><%= project.description %></textarea>
+    </div>
+    <div class="form-group">
+        <label>Organization</label>
+        <select name="organizationId" required>
+            <% organizations.forEach(org => { %>
+                <option value="<%= org.organization_id %>" <%= org.organization_id == project.organization_id ? 'selected' : '' %>><%= org.name %></option>
+            <% }); %>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Start Date</label>
+        <input type="date" name="startDate" value="<%= project.start_date ? new Date(project.start_date).toISOString().slice(0,10) : '' %>">
+    </div>
+    <div class="form-group">
+        <label>End Date</label>
+        <input type="date" name="endDate" value="<%= project.end_date ? new Date(project.end_date).toISOString().slice(0,10) : '' %>">
+    </div>
+    <div class="form-group">
+        <label>Location</label>
+        <input type="text" name="location" value="<%= project.location %>">
+    </div>
+    <button type="submit">Save Changes</button>
+</form>
+<a href="/projects/<%= project.project_id %>">Cancel</a>

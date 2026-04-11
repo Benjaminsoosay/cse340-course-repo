@@ -1,4 +1,29 @@
+// models/categories.js
+
 import db from './db.js';
+
+// ==================== HELPER FUNCTIONS ====================
+
+/**
+ * INTERNAL: Assign a single category to a project in the junction table.
+ * @param {number} categoryId - The category ID
+ * @param {number} projectId - The project ID
+ */
+const assignCategoryToProject = async (categoryId, projectId) => {
+    try {
+        const query = `
+            INSERT INTO project_categories (category_id, project_id)
+            VALUES ($1, $2)
+            ON CONFLICT DO NOTHING;
+        `;
+        await db.query(query, [categoryId, projectId]);
+    } catch (error) {
+        console.error(`Error assigning category ${categoryId} to project ${projectId}:`, error.message);
+        throw error;
+    }
+};
+
+// ==================== PUBLIC QUERY FUNCTIONS ====================
 
 /**
  * Get all categories from the database
@@ -31,9 +56,9 @@ export const getCategoryById = async (categoryId) => {
 };
 
 /**
- * Get all projects for a given category
+ * Get all projects for a given category (with organization details)
  * @param {number} categoryId - The category ID
- * @returns {Promise<Array>} Array of project objects with project details and organization name
+ * @returns {Promise<Array>} Array of project objects
  */
 export const getProjectsByCategoryId = async (categoryId) => {
     try {
@@ -60,6 +85,9 @@ export const getProjectsByCategoryId = async (categoryId) => {
     }
 };
 
+// Legacy alias for compatibility with older controllers
+export const getprojectsByCategory = getProjectsByCategoryId;
+
 /**
  * Get all categories for a specific project
  * @param {number} projectId - The project ID
@@ -82,24 +110,7 @@ export const getCategoriesForProject = async (projectId) => {
     }
 };
 
-/**
- * INTERNAL: Assign a single category to a project in the junction table.
- * @param {number} categoryId - The category ID
- * @param {number} projectId - The project ID
- */
-const assignCategoryToProject = async (categoryId, projectId) => {
-    try {
-        const query = `
-            INSERT INTO project_categories (category_id, project_id)
-            VALUES ($1, $2)
-            ON CONFLICT DO NOTHING;
-        `;
-        await db.query(query, [categoryId, projectId]);
-    } catch (error) {
-        console.error(`Error assigning category ${categoryId} to project ${projectId}:`, error.message);
-        throw error;
-    }
-};
+// ==================== MODIFICATION FUNCTIONS ====================
 
 /**
  * Update category assignments for a project.
@@ -118,7 +129,9 @@ export const updateCategoryAssignments = async (projectId, categoryIds) => {
 
         // Insert new assignments
         for (const categoryId of categoryIds) {
-            await assignCategoryToProject(categoryId, projectId);
+            if (categoryId && !isNaN(parseInt(categoryId))) {
+                await assignCategoryToProject(parseInt(categoryId), projectId);
+            }
         }
     } catch (error) {
         console.error(`Error updating category assignments for project ${projectId}:`, error.message);
@@ -126,12 +139,10 @@ export const updateCategoryAssignments = async (projectId, categoryIds) => {
     }
 };
 
-// ==================== NEW MODEL FUNCTIONS FOR CREATE/EDIT CATEGORY ====================
-
 /**
  * Creates a new category.
  * @param {string} name - Category name
- * @returns {number} The ID of the newly created category
+ * @returns {Promise<number>} The ID of the newly created category
  */
 export const createCategory = async (name) => {
     const query = `
@@ -153,7 +164,7 @@ export const createCategory = async (name) => {
  * Updates an existing category.
  * @param {number} categoryId - Category ID
  * @param {string} name - New category name
- * @returns {number} The ID of the updated category
+ * @returns {Promise<number>} The ID of the updated category
  */
 export const updateCategory = async (categoryId, name) => {
     const query = `
@@ -171,3 +182,5 @@ export const updateCategory = async (categoryId, name) => {
     }
     return result.rows[0].id;
 };
+
+// ✅ No duplicate export block – all functions are already exported with `export const`

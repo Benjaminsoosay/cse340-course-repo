@@ -1,0 +1,56 @@
+<%- include('partials/header') %>
+
+<main>
+    <h1>Edit Project: <%= project.title %></h1>
+
+    <form action="/edit-project/<%= project.project_id %>" method="POST">
+        
+        <div class="form-group">
+            <label for="title">Project Title</label>
+            <input type="text" id="title" name="title" value="<%= project.title %>" required>
+        </div>
+
+        <div class="form-group">
+            <label for="date">Project Date</label>
+            <% 
+                // HTML5 date inputs require YYYY-MM-DD format
+                const formattedDate = new Date(project.date).toISOString().split('T')[0]; 
+            %>
+            <input type="date" id="date" name="date" value="<%= formattedDate %>" required>
+        </div>
+
+        <div class="form-group">
+            <label for="location">Location</label>
+            <input type="text" id="location" name="location" value="<%= project.location %>" required>
+        </div>
+
+        <div class="form-group">
+            <label for="organization_id">Partner Organization</label>
+            <select id="organization_id" name="organizationId" required>
+                <option value="">Select an Organization</option>
+                <% organizations.forEach(org => { %>
+                    <option value="<%= org.organization_id %>" 
+                        <%= (org.organization_id == project.organization_id) ? 'selected' : '' %>>
+                        <%= org.name %>
+                    </option>
+                <% }) %>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" required><%= project.description %></textarea>
+        </div>
+
+        <section>
+            <button type="submit">Update Project</button>
+        </section>
+        <section class="buttons">
+            <button type="button">
+                <a href="/project/<%= project.project_id %>">Cancel</a>
+            </button>
+        </section>
+    </form>
+</main>
+
+<%- include('partials/footer') %>

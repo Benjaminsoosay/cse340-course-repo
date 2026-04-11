@@ -1,3 +1,5 @@
+// middleware/flash.js
+
 /**
  * Flash Message Middleware
  * 
@@ -8,6 +10,10 @@
  *   req.flash('success', 'Message text')  // Store a message
  *   req.flash('error')                    // Get all error messages
  *   req.flash()                           // Get all messages (all types)
+ * 
+ * Usage in templates (via res.locals.flash):
+ *   const messages = flash();             // Get all messages and clear them
+ *   const errors = flash('error');        // Get only error messages
  */
 
 /**
@@ -70,7 +76,7 @@ const flashMiddleware = (req, res, next) => {
     };
 
     next();
-}
+};
 
 /**
  * Make flash function available to all templates via res.locals
@@ -82,7 +88,7 @@ const flashLocals = (req, res, next) => {
     // Messages are only consumed when a template calls flash()
     res.locals.flash = req.flash;
     next();
-}
+};
 
 /**
  * Combined flash middleware that runs both functions in the correct order
@@ -94,4 +100,8 @@ const flash = (req, res, next) => {
     });
 };
 
+// Export the combined middleware as default
 export default flash;
+
+// Also export the individual functions for advanced usage
+export { flashMiddleware, flashLocals };

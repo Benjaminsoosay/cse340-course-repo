@@ -1,0 +1,31 @@
+<%- include('partials/header') %>
+
+<main class="profile-container">
+    <div class="profile-card">
+        <section class="profile-header">
+            <h2>User Profile Details</h2>
+            <div class="user-info">
+                <span class="user-name"><%= user.name %></span>
+                <span class="user-email"><%= user.email %></span>
+            </div>
+        </section>
+
+        <div class="profile-content">
+            <div class="info-group">
+                <label>Account Status</label>
+                <p class="role-display">
+                    <%= user.role_name==='admin' ? 'Administrator' : 'Standard User' %>
+                </p>
+            </div>
+        
+            <div class="form-actions">
+                <a href="/user/edit/<%= user.user_id %>" class="btn-edit-link">
+                    <button type="button">Edit Permissions</button>
+                </a>
+                <a href="/users/" class="btn-cancel">Back to Users</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<%- include('partials/footer') %>

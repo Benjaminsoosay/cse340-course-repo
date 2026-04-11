@@ -1,28 +1,46 @@
 <%- include('partials/header') %>
-    <main>
-        <h1><%= title %></h1>
+<main>
+    <h1><%= title %></h1>
 
-        <form action="/login" method="POST">
-            <div class="form-group">
-                <label for="email">Email (Username)</label>
-                <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    required
-                />
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    required
-                />
-            </div>
-            <button type="submit">Login</button>
-        </form>
-    </main>   
+    <% if (typeof flash !== 'undefined' && flash.error && flash.error().length) { %>
+        <div class="alert alert-error">
+            <% flash.error().forEach(msg => { %>
+                <p><%= msg %></p>
+            <% }); %>
+        </div>
+    <% } %>
+
+    <form action="/login" method="POST">
+        <div class="form-group">
+            <label for="email">Email (Username)</label>
+            <input type="email" id="email" name="email" required />
+        </div>
+
+        <div class="password-wrapper form-group">
+            <input type="password" name="password" id="password" placeholder="Enter password" required>
+            <i class="fa-solid fa-eye" id="togglePassword"></i>
+        </div>
+
+        <button type="submit">Login</button>
+
+        <section class="form-footer">
+            <p>Don't have an account?</p>
+            <a href="/register" class="btn-secondary">Create a new account</a>
+        </section>
+    </form>
+</main>
+
+<script>
+    const togglePassword = document.querySelector('#togglePassword');
+    const password = document.querySelector('#password');
+    if (togglePassword) {
+        togglePassword.addEventListener('click', function () {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+    }
+</script>
 
 <%- include('partials/footer') %>

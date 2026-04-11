@@ -1,37 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %> | CSE 340</title>
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
-    <%- include('partials/header') %>
+<%- include('partials/header') %>
 
-    <main>
+<main class="category-page">
+    <div class="container">
         <h1><%= title %></h1>
-        <p>Here are the categories of service projects we support:</p>
-        
-        <% if (categories && categories.length > 0) { %>
-            <ul class="categories-list">
+
+        <div class="categories-grid">
+            <% if (categories && categories.length > 0) { %>
                 <% categories.forEach(category => { %>
-                    <li>
-                        <h3>
-                            <a href="/category/<%= category.id %>"><%= category.name %></a>
-                            &nbsp;–&nbsp;
-                            <a href="/edit-category/<%= category.id %>">Edit</a>
-                        </h3>
-                    </li>
+                    <div class="category-card">
+                        <h2><%= category.name %></h2>
+                        <a href="/category/<%= category.id %>" class="btn btn-outline">View Projects →</a>
+                    </div>
                 <% }); %>
-            </ul>
-        <% } else { %>
-            <p>No categories found.</p>
+            <% } else { %>
+                <p class="no-results">No categories found.</p>
+            <% } %>
+        </div>
+
+        <!-- Admin‑only button to add a new category -->
+        <% if (user && user.role_name === 'admin') { %>
+            <div class="admin-actions">
+                <a href="/new-category" class="btn btn-primary">+ Add New Category</a>
+            </div>
         <% } %>
+    </div>
+</main>
 
-        <p><a href="/new-category">Add a New Category</a></p>
-    </main>
-
-    <%- include('partials/footer') %>
-</body>
-</html>
+<%- include('partials/footer') %>

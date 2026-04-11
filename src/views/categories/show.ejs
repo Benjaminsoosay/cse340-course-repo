@@ -1,0 +1,11 @@
+<h1><%= category.name %></h1>
+<p><%= category.description %></p>
+
+<h2>Projects in this category</h2>
+<ul>
+  <% category.Projects.forEach(project => { %>
+    <li><a href="/projects/<%= project.id %>"><%= project.title %></a></li>
+  <% }) %>
+</ul>
+
+<a href="/categories">← Back to all categories</a>

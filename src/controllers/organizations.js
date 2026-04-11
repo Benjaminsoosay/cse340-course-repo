@@ -1,11 +1,17 @@
-// Import model functions
-import { getAllOrganizations, getOrganizationDetails, createOrganization, updateOrganization } from '../models/organizations.js';
-import { getProjectsByOrganizationId } from '../models/projects.js';
+// src/controllers/organizations.js
+
 import { body, validationResult } from 'express-validator';
-import db from '../models/db.js';   // ✅ needed for direct delete query
+import {
+    getAllOrganizations,
+    getOrganizationDetails,
+    createOrganization as insertOrg,
+    updateOrganization as updateOrg
+} from '../models/organization.js';
+import { getProjectsByOrganizationId } from '../models/projects.js';
+import db from '../models/db.js';
 
 // ==================== VALIDATION RULES ====================
-const organizationValidation = [
+export const organizationValidation = [
     body('name')
         .trim()
         .notEmpty()
@@ -26,90 +32,119 @@ const organizationValidation = [
         .withMessage('Please provide a valid email address')
 ];
 
-// ==================== CONTROLLER FUNCTIONS ====================
-// Controller for the list of all organizations
-const showOrganizationsPage = async (req, res) => {
-    const organizations = await getAllOrganizations();
-    const title = 'Our Partner Organizations';
-    res.render('organizations', { title, organizations });
+// ==================== LIST PAGE (public) ====================
+export const showOrganizationsPage = async (req, res, next) => {
+    try {
+        const organizations = await getAllOrganizations();
+        res.render('organizations', {
+            title: 'Our Partner Organizations',
+            organizations,
+            isAdmin: req.session.user && req.session.user.role_name === 'admin'
+        });
+    } catch (error) {
+        next(error);
+    }
 };
 
-// Controller for a single organization's details page
-const showOrganizationDetailsPage = async (req, res) => {
-    const organizationId = req.params.id;
-    const organizationDetails = await getOrganizationDetails(organizationId);
-    const projects = await getProjectsByOrganizationId(organizationId);
-    const title = 'Organization Details';
-    res.render('organization', { title, organizationDetails, projects });
+// ==================== DETAIL PAGE (public) ====================
+export const showOrganizationDetailsPage = async (req, res, next) => {
+    try {
+        const organizationId = req.params.id;
+        const organizationDetails = await getOrganizationDetails(organizationId);
+        if (!organizationDetails) {
+            req.flash('error', 'Organization not found');
+            return res.redirect('/organizations');
+        }
+        const projects = await getProjectsByOrganizationId(organizationId);
+        res.render('organization-details', {   // ✅ matches your view name
+            title: organizationDetails.name,
+            organization: organizationDetails,  // consistent naming for the template
+            projects,
+            isAdmin: req.session.user && req.session.user.role_name === 'admin'
+        });
+    } catch (error) {
+        next(error);
+    }
 };
 
-// Controller for the "Add New Organization" form (GET)
-const showNewOrganizationForm = async (req, res) => {
-    const title = 'Add New Organization';
-    res.render('new-organization', { title, organization: null });
+// ==================== CREATE ORGANIZATION (admin only) ====================
+// GET – show form
+export const showNewOrganizationForm = async (req, res, next) => {
+    try {
+        res.render('new-organization', { title: 'Add New Organization' });
+    } catch (error) {
+        next(error);
+    }
 };
 
-// Controller to process the form submission (POST)
-const processNewOrganizationForm = async (req, res) => {
-    // Check for validation errors
+// POST – process creation
+export const createOrganization = async (req, res, next) => {
     const results = validationResult(req);
     if (!results.isEmpty()) {
-        // Validation failed - loop through errors and add to flash
-        results.array().forEach((error) => {
-            req.flash('error', error.msg);
-        });
-        // Redirect back to the new organization form
+        results.array().forEach(err => req.flash('error', err.msg));
         return res.redirect('/new-organization');
     }
 
-    // No validation errors – create the organization
-    const { name, description, contactEmail } = req.body;
-    const logoFilename = 'placeholder-logo.png';
-
-    const organizationId = await createOrganization(name, description, contactEmail, logoFilename);
-    
-    // Set a success flash message
-    req.flash('success', 'Organization added successfully!');
-    
-    res.redirect(`/organization/${organizationId}`);
+    try {
+        const { name, description, contactEmail } = req.body;
+        const logoFilename = 'placeholder-logo.png';
+        await insertOrg(name, description, contactEmail, logoFilename);
+        req.flash('success', 'Organization created successfully.');
+        res.redirect('/organizations');
+    } catch (error) {
+        console.error('Error creating organization:', error);
+        req.flash('error', 'Failed to create organization.');
+        res.redirect('/new-organization');
+    }
 };
 
-// Controller to display the edit organization form (GET)
-const showEditOrganizationForm = async (req, res) => {
-    const organizationId = req.params.id;
-    const organizationDetails = await getOrganizationDetails(organizationId);
-
-    const title = 'Edit Organization';
-    res.render('edit-organization', { title, organizationDetails });
+// ==================== EDIT ORGANIZATION (admin only) ====================
+// GET – show edit form
+export const showEditOrganizationForm = async (req, res, next) => {
+    try {
+        const organizationId = req.params.id;
+        const organizationDetails = await getOrganizationDetails(organizationId);
+        if (!organizationDetails) {
+            req.flash('error', 'Organization not found');
+            return res.redirect('/organizations');
+        }
+        res.render('edit-organization', {
+            title: 'Edit Organization',
+            organization: organizationDetails   // consistent variable name
+        });
+    } catch (error) {
+        next(error);
+    }
 };
 
-// Controller to process the edit organization form submission (POST)
-const processEditOrganizationForm = async (req, res) => {
-    // Check for validation errors
+// POST – process update
+export const updateOrganization = async (req, res, next) => {
     const results = validationResult(req);
     if (!results.isEmpty()) {
-        // Validation failed - loop through errors and add to flash
-        results.array().forEach((error) => {
-            req.flash('error', error.msg);
-        });
-        // Redirect back to the edit organization form
+        results.array().forEach(err => req.flash('error', err.msg));
         return res.redirect(`/edit-organization/${req.params.id}`);
     }
 
-    // No validation errors – update the organization
-    const organizationId = req.params.id;
-    const { name, description, contactEmail, logoFilename } = req.body;
-
-    await updateOrganization(organizationId, name, description, contactEmail, logoFilename);
-    
-    // Set a success flash message
-    req.flash('success', 'Organization updated successfully!');
-
-    res.redirect(`/organization/${organizationId}`);
+    try {
+        const organizationId = req.params.id;
+        const { name, description, contactEmail, logoFilename } = req.body;
+        let finalLogo = logoFilename;
+        if (!finalLogo) {
+            const existing = await getOrganizationDetails(organizationId);
+            finalLogo = existing ? existing.logo_filename : 'placeholder-logo.png';
+        }
+        await updateOrg(organizationId, name, description, contactEmail, finalLogo);
+        req.flash('success', 'Organization updated successfully.');
+        res.redirect(`/organization/${organizationId}`);
+    } catch (error) {
+        console.error('Error updating organization:', error);
+        req.flash('error', 'Failed to update organization.');
+        res.redirect(`/edit-organization/${req.params.id}`);
+    }
 };
 
-// Controller to delete an organization (admin only)
-const deleteOrganization = async (req, res, next) => {
+// ==================== DELETE ORGANIZATION (admin only) ====================
+export const deleteOrganization = async (req, res, next) => {
     const orgId = req.params.id;
     try {
         // Check if organization exists
@@ -120,7 +155,7 @@ const deleteOrganization = async (req, res, next) => {
             return res.redirect('/organizations');
         }
 
-        // Delete the organization (projects will cascade due to ON DELETE CASCADE)
+        // Delete (projects will cascade if ON DELETE CASCADE is set)
         const deleteQuery = 'DELETE FROM organization WHERE organization_id = $1';
         await db.query(deleteQuery, [orgId]);
 
@@ -128,19 +163,14 @@ const deleteOrganization = async (req, res, next) => {
         res.redirect('/organizations');
     } catch (error) {
         console.error('Error deleting organization:', error);
-        req.flash('error', 'Unable to delete organization. It may have associated data.');
+        req.flash('error', 'Unable to delete organization. It may have associated projects.');
         res.redirect('/organizations');
     }
 };
 
-// ==================== EXPORTS ====================
-export {
-    showOrganizationsPage,
-    showOrganizationDetailsPage,
-    showNewOrganizationForm,
-    processNewOrganizationForm,
-    organizationValidation,
-    showEditOrganizationForm,
-    processEditOrganizationForm,
-    deleteOrganization   // ✅ export the new function
-};
+// ==================== LEGACY ALIASES (optional, for backward compatibility) ====================
+export const showCreateOrganizationForm = showNewOrganizationForm;
+export const createOrganizationHandler = createOrganization;
+export const editOrganizationHandler = updateOrganization;
+export const processNewOrganizationForm = createOrganization;
+export const processEditOrganizationForm = updateOrganization;

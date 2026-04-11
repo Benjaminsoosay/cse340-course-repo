@@ -1,0 +1,21 @@
+<h1>Edit Organization</h1>
+<form method="POST">
+    <div class="form-group">
+        <label>Name</label>
+        <input type="text" name="name" value="<%= organization.name %>" required>
+    </div>
+    <div class="form-group">
+        <label>Description</label>
+        <textarea name="description" required><%= organization.description %></textarea>
+    </div>
+    <div class="form-group">
+        <label>Contact Email</label>
+        <input type="email" name="contactEmail" value="<%= organization.contact_email %>" required>
+    </div>
+    <div class="form-group">
+        <label>Logo Filename</label>
+        <input type="text" name="logoFilename" value="<%= organization.logo_filename %>">
+    </div>
+    <button type="submit">Save Changes</button>
+</form>
+<a href="/organizations/<%= organization.organization_id %>">Cancel</a>

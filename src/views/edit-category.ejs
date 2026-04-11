@@ -1,4 +1,6 @@
+<!-- views/edit-category.ejs -->
 <%- include('partials/header') %>
+
 <main>
     <h1><%= title %></h1>
 
@@ -7,7 +9,12 @@
             <label for="name">Category Name</label>
             <input type="text" id="name" name="name" value="<%= category.name %>" required maxlength="100">
         </div>
-        <button type="submit">Update Category</button>
+
+        <div class="button-group">
+            <button type="submit" class="btn btn-primary">Update Category</button>
+            <a href="/categories" class="btn btn-secondary">Cancel</a>
+        </div>
     </form>
 </main>
+
 <%- include('partials/footer') %>

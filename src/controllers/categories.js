@@ -1,4 +1,7 @@
-// Import needed model functions
+// src/controllers/categories.js
+
+// ==================== IMPORTS ====================
+import { body, validationResult } from 'express-validator';
 import {
     getAllCategories,
     getCategoryById,
@@ -9,7 +12,6 @@ import {
     updateCategory
 } from '../models/categories.js';
 import { getProjectDetails } from '../models/projects.js';
-import { body, validationResult } from 'express-validator';
 
 // ==================== VALIDATION RULES ====================
 export const categoryValidation = [
@@ -17,107 +19,102 @@ export const categoryValidation = [
         .trim()
         .notEmpty().withMessage('Category name is required')
         .isLength({ min: 3, max: 100 }).withMessage('Category name must be between 3 and 100 characters')
+        .matches(/^[a-zA-Z0-9\s\-&]+$/).withMessage('Only letters, numbers, spaces, hyphens, and ampersands allowed')
 ];
 
-// ==================== EXISTING CONTROLLER FUNCTIONS ====================
-// Controller for categories list page
-const showCategoriesPage = async (req, res, next) => {
+// ==================== LIST ALL CATEGORIES (public) ====================
+export const showCategoriesPage = async (req, res, next) => {
     try {
         const categories = await getAllCategories();
-        const title = 'Service Categories';
-        res.render('categories', { title, categories });
+        res.render('categories', {
+            title: 'Service Categories',
+            categories,
+            user: req.session.user || null,
+            isAdmin: req.session.user && req.session.user.role_name === 'admin'
+        });
     } catch (error) {
         next(error);
     }
 };
 
-// Controller for single category details page
-const showCategoryDetailsPage = async (req, res, next) => {
+// ==================== CATEGORY DETAILS PAGE (public) ====================
+export const showCategoryDetailsPage = async (req, res, next) => {
     try {
         const categoryId = req.params.id;
         const category = await getCategoryById(categoryId);
-        
         if (!category) {
-            const err = new Error('Category not found');
-            err.status = 404;
-            return next(err);
+            req.flash('error', 'Category not found');
+            return res.redirect('/categories');
         }
-        
         const projects = await getProjectsByCategoryId(categoryId);
-        const title = `Category: ${category.name}`;
-        res.render('category', { title, category, projects });
-    } catch (error) {
-        next(error);
-    }
-};
-
-// Controller to display the assign categories form (GET)
-const showAssignCategoriesForm = async (req, res, next) => {
-    try {
-        const projectId = req.params.projectId;
-        
-        const projectDetails = await getProjectDetails(projectId);
-        if (!projectDetails) {
-            const err = new Error('Project not found');
-            err.status = 404;
-            return next(err);
-        }
-        
-        const categories = await getAllCategories();
-        const assignedCategories = await getCategoriesForProject(projectId);
-        
-        const title = 'Assign Categories to Project';
-        res.render('assign-categories', { 
-            title, 
-            projectId, 
-            projectDetails, 
-            categories, 
-            assignedCategories 
+        res.render('category-details', {
+            title: category.name,
+            category,
+            projects,
+            user: req.session.user || null,
+            isAdmin: req.session.user && req.session.user.role_name === 'admin'
         });
     } catch (error) {
         next(error);
     }
 };
 
-// Controller to process the assign categories form submission (POST)
-const processAssignCategoriesForm = async (req, res, next) => {
+// ==================== ASSIGN CATEGORIES TO A PROJECT (admin) ====================
+export const showAssignCategoriesForm = async (req, res, next) => {
     try {
-        const projectId = req.params.projectId;
-        const selectedCategoryIds = req.body.categoryIds || [];
-        
-        const categoryIdsArray = Array.isArray(selectedCategoryIds) ? selectedCategoryIds : [selectedCategoryIds];
-        await updateCategoryAssignments(projectId, categoryIdsArray);
-        
-        req.flash('success', 'Categories updated successfully.');
-        res.redirect(`/project/${projectId}`);
+        const projectId = req.params.projectId || req.params.id;
+        const project = await getProjectDetails(projectId);
+        if (!project) {
+            req.flash('error', 'Project not found');
+            return res.redirect('/projects');
+        }
+        const allCategories = await getAllCategories();
+        const assignedCategories = await getCategoriesForProject(projectId);
+        const assignedIds = assignedCategories.map(c => c.category_id || c.id);
+        res.render('assign-categories', {
+            title: 'Assign Categories',
+            project,
+            allCategories,
+            assignedIds,
+            user: req.session.user || null
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const processAssignCategoriesForm = async (req, res, next) => {
+    try {
+        const projectId = req.params.projectId || req.params.id;
+        let selectedCategoryIds = req.body.categories || [];
+        if (!Array.isArray(selectedCategoryIds)) {
+            selectedCategoryIds = [selectedCategoryIds];
+        }
+        await updateCategoryAssignments(projectId, selectedCategoryIds);
+        req.flash('success', 'Category assignments updated successfully.');
+        res.redirect(`/projects/${projectId}`);
     } catch (error) {
         console.error('Error updating category assignments:', error);
         req.flash('error', 'There was an error updating categories.');
-        res.redirect(`/project/${req.params.projectId}`);
+        res.redirect(`/assign-categories/${req.params.projectId || req.params.id}`);
     }
 };
 
-// ==================== NEW CATEGORY CONTROLLERS (CREATE / EDIT) ====================
-// Display the "Create New Category" form (GET)
-const showNewCategoryForm = async (req, res, next) => {
+// ==================== CREATE NEW CATEGORY (admin) ====================
+export const showCreateCategoryForm = async (req, res, next) => {
     try {
-        const title = 'Add New Category';
-        res.render('new-category', { title });
+        res.render('new-category', { title: 'Add New Category' });
     } catch (error) {
         next(error);
     }
 };
 
-// Process creation of a new category (POST) – uses validationResult
-const processNewCategoryForm = async (req, res, next) => {
+export const createCategoryHandler = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        errors.array().forEach((error) => {
-            req.flash('error', error.msg);
-        });
+        errors.array().forEach(err => req.flash('error', err.msg));
         return res.redirect('/new-category');
     }
-
     try {
         const { name } = req.body;
         await createCategory(name);
@@ -130,33 +127,27 @@ const processNewCategoryForm = async (req, res, next) => {
     }
 };
 
-// Display the "Edit Category" form (GET)
-const showEditCategoryForm = async (req, res, next) => {
+// ==================== EDIT CATEGORY (admin) ====================
+export const showEditCategoryForm = async (req, res, next) => {
     try {
         const categoryId = req.params.id;
         const category = await getCategoryById(categoryId);
         if (!category) {
-            const err = new Error('Category not found');
-            err.status = 404;
-            return next(err);
+            req.flash('error', 'Category not found');
+            return res.redirect('/categories');
         }
-        const title = 'Edit Category';
-        res.render('edit-category', { title, category });
+        res.render('edit-category', { title: 'Edit Category', category });
     } catch (error) {
         next(error);
     }
 };
 
-// Process update of an existing category (POST) – uses validationResult
-const processEditCategoryForm = async (req, res, next) => {
+export const editCategoryHandler = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        errors.array().forEach((error) => {
-            req.flash('error', error.msg);
-        });
+        errors.array().forEach(err => req.flash('error', err.msg));
         return res.redirect(`/edit-category/${req.params.id}`);
     }
-
     try {
         const categoryId = req.params.id;
         const { name } = req.body;
@@ -170,15 +161,7 @@ const processEditCategoryForm = async (req, res, next) => {
     }
 };
 
-// ==================== EXPORT ALL CONTROLLERS ====================
-// NOTE: categoryValidation is already exported at the top, do NOT include it here.
-export { 
-    showCategoriesPage, 
-    showCategoryDetailsPage,
-    showAssignCategoriesForm,
-    processAssignCategoriesForm,
-    showNewCategoryForm,
-    processNewCategoryForm,
-    showEditCategoryForm,
-    processEditCategoryForm
-};
+// ==================== LEGACY ALIASES (optional, for backward compatibility) ====================
+export const showNewCategoryForm = showCreateCategoryForm;
+export const processNewCategoryForm = createCategoryHandler;
+export const processEditCategoryForm = editCategoryHandler;

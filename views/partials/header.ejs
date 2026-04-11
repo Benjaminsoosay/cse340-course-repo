@@ -1,0 +1,47 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <div class="header-bar">
+        <div class="logo-container">
+            <img src="/images/cse340-logo.png" alt="logo" width="35">
+            <div class="title-wrapper">
+                <span class="title-main">CSE 340</span>
+                <span class="title-sub">Service Network</span>
+            </div>
+        </div>
+        <nav class="navigation">
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/organizations">Organizations</a></li>
+                <li><a href="/projects">Projects</a></li>
+                <li><a href="/categories">Categories</a></li>
+                <% if (user) { %>
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><span>Welcome, <%= user.name %></span></li>
+                    <li><a href="/logout">Logout</a></li>
+                <% } else { %>
+                    <li><a href="/login">Login</a></li>
+                <% } %>
+            </ul>
+        </nav>
+        <div id="flash-container">
+            <% const messages = typeof flash === 'function' ? flash() : { success: [], error: [], warning: [], info: [] }; %>
+            <% Object.keys(messages).forEach(type => { %>
+                <% if (messages[type].length) { %>
+                    <% messages[type].forEach(msg => { %>
+                        <div class="toast toast-<%= type %>">
+                            <span><%= msg %></span>
+                            <button onclick="this.parentElement.remove()">&times;</button>
+                        </div>
+                    <% }); %>
+                <% } %>
+            <% }); %>
+        </div>
+    </div>

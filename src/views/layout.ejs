@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSE 340 Service Network</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <%- include('partials/header') %>
+    <main>
+        <!-- Flash messages (displayed if present) -->
+        <% if (success_msg && success_msg.length) { %>
+            <div class="toast toast-success"><%= success_msg %></div>
+        <% } %>
+        <% if (error_msg && error_msg.length) { %>
+            <div class="toast toast-error"><%= error_msg %></div>
+        <% } %>
+        
+        <!-- Page content -->
+        <%- body %>
+    </main>
+    <%- include('partials/footer') %>
+</body>
+</html>

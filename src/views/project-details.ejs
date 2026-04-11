@@ -4,36 +4,61 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %> | CSE 340</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <%- include('partials/header') %>
 
-    <main>
-        <h1><%= project.title %></h1>
-        <p><strong>Description:</strong> <%= project.description %></p>
-        <p><strong>Date:</strong> <%= project.date %></p>
-        <p><strong>Location:</strong> <%= project.location %></p>
-        <p><strong>Organization:</strong> <a href="/organization/<%= project.organization_id %>"><%= project.organization_name %></a></p>
-
-        <!-- Volunteer section with CORRECT actions -->
-        <% if (user) { %>
-            <div class="volunteer-section">
-                <% if (isVolunteer) { %>
-                    <p class="volunteer-status">You are volunteering for this project.</p>
-                    <!-- ✅ FIXED: removed extra '/volunteer' from action -->
-                    <form action="/projects/<%= project.id %>/remove-volunteer" method="POST">
-                        <button type="submit" class="btn btn-outline-danger">Remove Me as Volunteer</button>
-                    </form>
-                <% } else { %>
-                    <form action="/projects/<%= project.id %>/volunteer" method="POST">
-                        <button type="submit" class="btn btn-success">Volunteer for This Project</button>
-                    </form>
+    <main class="project-detail">
+        <div class="container">
+            <div class="detail-header">
+                <h1><%= project.title %></h1>
+                <% if (isAdmin) { %>
+                    <div class="admin-actions">
+                        <a href="/edit-project/<%= project.project_id %>" class="btn btn-edit">Edit Project</a>
+                        <form action="/delete-project/<%= project.project_id %>" method="POST" class="delete-form inline" onsubmit="return confirm('Delete this project?');">
+                            <button type="submit" class="btn btn-delete">Delete</button>
+                        </form>
+                    </div>
                 <% } %>
             </div>
-        <% } else { %>
-            <p><a href="/login">Log in</a> to volunteer for this project.</p>
-        <% } %>
+
+            <div class="detail-content">
+                <div class="project-description">
+                    <h2>Description</h2>
+                    <p><%= project.description %></p>
+                </div>
+
+                <div class="project-meta">
+                    <p><strong>Date:</strong> <%= project.date %></p>
+                    <p><strong>Location:</strong> <%= project.location %></p>
+                    <p><strong>Organization:</strong> 
+                        <a href="/organization/<%= project.organization_id %>">
+                            <%= project.organization_name %>
+                        </a>
+                    </p>
+                </div>
+
+                <!-- Volunteer section with CORRECT actions -->
+                <% if (user) { %>
+                    <div class="volunteer-section">
+                        <% if (isVolunteer) { %>
+                            <p class="volunteer-status">You are volunteering for this project.</p>
+                            <form action="/projects/<%= project.project_id %>/remove-volunteer" method="POST">
+                                <button type="submit" class="btn btn-outline-danger">Remove Me as Volunteer</button>
+                            </form>
+                        <% } else { %>
+                            <form action="/projects/<%= project.project_id %>/volunteer" method="POST">
+                                <button type="submit" class="btn btn-success">Volunteer for This Project</button>
+                            </form>
+                        <% } %>
+                    </div>
+                <% } else { %>
+                    <p><a href="/login">Log in</a> to volunteer for this project.</p>
+                <% } %>
+            </div>
+        </div>
     </main>
 
     <%- include('partials/footer') %>

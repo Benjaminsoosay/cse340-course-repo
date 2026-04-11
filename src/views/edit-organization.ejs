@@ -1,0 +1,35 @@
+<!-- views/edit-organization.ejs -->
+<%- include('partials/header') %>
+
+<main>
+    <div class="container">
+        <h1><%= title %></h1>
+
+        <form action="/edit-organization/<%= organizationDetails.organization_id %>" method="POST">
+            <div class="form-group">
+                <label for="name">Organization Name</label>
+                <input type="text" id="name" name="name" value="<%= organizationDetails.name %>" required maxlength="150">
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" required maxlength="500"><%= organizationDetails.description %></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="contact_email">Contact Email</label>
+                <input type="email" id="contact_email" name="contact_email" value="<%= organizationDetails.contact_email %>" required>
+            </div>
+
+            <!-- Logo filename is not user-editable; preserve existing value -->
+            <input type="hidden" name="logo_filename" value="<%= organizationDetails.logo_filename %>">
+
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">Update Organization</button>
+                <a href="/organization/<%= organizationDetails.organization_id %>" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+<%- include('partials/footer') %>

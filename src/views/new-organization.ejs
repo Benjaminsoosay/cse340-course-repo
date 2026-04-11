@@ -1,43 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %> | CSE 340</title>
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
-    <%- include('partials/header') %>
+<%- include('partials/header') %>
+<main>
+    <h1><%= title %></h1>
 
-    <main>
-        <h1><%= title %></h1>
+ <form action="/new-organization" method="POST">
+    <div class="form-group">
+      <label for="name">Organization Name</label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+      required
+      maxlength="150"/>
+    </div>
 
-        <form action="/new-organization" method="POST">
-            <div class="form-group">
-                <label for="name">Organization Name</label>
-                <input type="text" id="name" name="name" value="<%= locals.organization && organization.name ? organization.name : '' %>" required maxlength="150">
-            </div>
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea
+        id="description"
+        name="description"
+      required
+      maxlength="500"></textarea>
+    </div>
 
-            <div class="form-group">
-                <label for="description">Description</label>
-                <textarea id="description" name="description" rows="5" required maxlength="500"><%= locals.organization && organization.description ? organization.description : '' %></textarea>
-            </div>
+    <div class="form-group">
+      <label for="contactEmail">Contact Email</label>
+      <input
+        type="email"
+        id="contactEmail"
+        name="contactEmail"
+      required/>
+    </div>
 
-            <div class="form-group">
-                <label for="contact_email">Contact Email</label>
-                <input type="email" id="contact_email" name="contact_email" value="<%= locals.organization && organization.contact_email ? organization.contact_email : '' %>" required>
-            </div>
+    <button type="submit">Create Organization</button>
 
-            <div class="form-group">
-                <label for="logo_filename">Logo Filename</label>
-                <input type="text" id="logo_filename" name="logo_filename" value="<%= locals.organization && organization.logo_filename ? organization.logo_filename : '' %>" placeholder="e.g., logo.png" maxlength="255">
-            </div>
+    <section class="buttons">
+      <button type="button">
+        <a href="/organizations">Cancel</a>
+      </button>
+    </section>
+  </form>
 
-            <button type="submit">Create Organization</button>
-            <a href="/organizations">Cancel</a>
-        </form>
-    </main>
-
-    <%- include('partials/footer') %>
-</body>
-</html>
+</main>
+<%- include('partials/footer') %>

@@ -1,0 +1,17 @@
+<%# views/index.ejs - uses layout.ejs %>
+<h1>Items</h1>
+
+<% if (user && user.role === 'admin') { %>
+    <a href="/create" class="btn">Create New Item</a>
+<% } %>
+
+<ul>
+    <% items.forEach(item => { %>
+        <li>
+            <%= item.name %>
+            <% if (user && user.role === 'admin') { %>
+                <a href="/edit/<%= item.id %>">Edit</a>
+            <% } %>
+        </li>
+    <% }); %>
+</ul>

@@ -1,0 +1,30 @@
+<%- include('partials/header') %>
+
+<main>
+    <h1><%= category.name %> Projects</h1>
+
+    <% if (projects && projects.length > 0) { %>
+        <ul class="project-list">
+            <% projects.forEach(project => { %>
+                <li>
+                    <a href="/project/<%= project.project_id %>">
+                        <%= project.title %>
+                    </a>
+                    <p><%= project.location %></p>
+                </li>
+            <% }); %>
+        </ul>
+    <% } else { %>
+        <p>There are currently no projects assigned to this category.</p>
+    <% } %>
+
+    <% if (user && user.role_name === 'admin') { %>
+        <section class="buttons">
+            <button type="button">
+                <a href="/edit-category/<%= category.id %>">Edit Category</a>
+            </button>
+        </section>
+    <% } %>
+</main>
+
+<%- include('partials/footer') %>

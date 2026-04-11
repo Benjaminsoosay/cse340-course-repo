@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> | CSE 340</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('partials/header') %>
+
+    <main class="organization-detail">
+        <div class="container">
+            <div class="detail-header">
+                <!-- Organization Logo -->
+                <div class="org-logo-container">
+                    <% 
+                        // Map organization names to their logo filenames
+                        const logoMap = {
+                            'UnityServe Volunteers': 'unityserve-logo.png',
+                            'BrightFuture Builders': 'brightfuture-logo.png',
+                            'GreenHarvest Growers': 'greenharvest-logo.png'
+                        };
+                        const logoFile = logoMap[organization.name] || 'placeholder-logo.png';
+                    %>
+                    <img src="/images/<%= logoFile %>" 
+                         alt="<%= organization.name %> logo" 
+                         class="org-detail-logo"
+                         onerror="this.onerror=null; this.src='/images/placeholder-logo.png';">
+                </div>
+                <h1><%= organization.name %></h1>
+                <% if (isAdmin) { %>
+                    <div class="admin-actions">
+                        <a href="/edit-organization/<%= organization.organization_id %>" class="btn btn-edit">Edit Organization</a>
+                        <form action="/delete-organization/<%= organization.organization_id %>" method="POST" class="delete-form inline" onsubmit="return confirm('Delete this organization? All projects will also be deleted.');">
+                            <button type="submit" class="btn btn-delete">Delete</button>
+                        </form>
+                    </div>
+                <% } %>
+            </div>
+
+            <div class="detail-content">
+                <div class="org-description">
+                    <h2>About</h2>
+                    <p><%= organization.description %></p>
+                </div>
+                <div class="org-contact">
+                    <h2>Contact</h2>
+                    <p><i class="fas fa-envelope"></i> <a href="mailto:<%= organization.contact_email %>"><%= organization.contact_email %></a></p>
+                </div>
+
+                <% if (projects && projects.length > 0) { %>
+                    <div class="org-projects">
+                        <h2>Projects</h2>
+                        <div class="project-list">
+                            <% projects.forEach(project => { %>
+                                <div class="project-card">
+                                    <h3><%= project.title %></h3>
+                                    <p><%= project.description %></p>
+                                    <a href="/project/<%= project.project_id %>" class="btn btn-sm">Learn More</a>
+                                </div>
+                            <% }); %>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <p>No projects available for this organization yet.</p>
+                <% } %>
+            </div>
+        </div>
+    </main>
+
+    <%- include('partials/footer') %>
+</body>
+</html>

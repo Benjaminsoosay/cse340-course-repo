@@ -1,45 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %> | CSE 340</title>
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
-    <%- include('partials/header') %>
+<%- include('partials/header') %>
+<main>
+    <h1><%= title %></h1>
 
-    <main>
-        <h1><%= organizationDetails.name %></h1>
+    <h2><%= organizationDetails.name %></h2>
+    <img src="/images/<%= organizationDetails.logo_filename %>" alt="<%= organizationDetails.name %> logo">
 
-        <% if (organizationDetails.logo_filename) { %>
-            <img src="/images/<%= organizationDetails.logo_filename %>" alt="<%= organizationDetails.name %> logo" class="org-logo">
-        <% } %>
+    <p>Description: <%= organizationDetails.description %></p>
 
-        <p class="org-description"><%= organizationDetails.description %></p>
-        <p><strong>Contact:</strong> <a href="mailto:<%= organizationDetails.contact_email %>"><%= organizationDetails.contact_email %></a></p>
+    <h3>Service Projects</h3>
+    <ul>
+        <% projects.forEach(project => { %>
+            <li><a href="/project/<%= project.project_id %>"><%= project.title %></a></li>
+        <% }) %>
+    </ul>
 
-        <!-- Edit link -->
-        <p><a href="/edit-organization/<%= organizationDetails.organization_id %>">Edit Organization</a></p>
-
-        <h2>Service Projects</h2>
-        <% if (projects.length > 0) { %>
-            <ul class="project-list">
-                <% projects.forEach(project => { %>
-                    <li>
-                        <a href="/project/<%= project.project_id %>">
-                            <strong><%= project.name %></strong>
-                        </a>
-                        <p><%= project.description %></p>
-                        <small>Location: <%= project.location %></small>
-                    </li>
-                <% }); %>
-            </ul>
-        <% } else { %>
-            <p>This organization currently has no service projects listed.</p>
-        <% } %>
-    </main>
-
-    <%- include('partials/footer') %>
-</body>
-</html>
+    <% if (user && user.role_name==='admin' ) { %>
+    <section class="buttons">
+        <button>
+            <a href="/edit-organization/<%= organizationDetails.organization_id %>">Edit Organization</a>
+        </button>
+    </section>
+    <% } %>
+</main>
+<%- include('partials/footer') %>

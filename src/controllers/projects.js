@@ -1,13 +1,24 @@
-import { getUpcomingProjects, getProjectDetails, createProject, updateProject } from '../models/projects.js';
-import { getCategoriesForProject } from '../models/categories.js';
-import { getAllOrganizations } from '../models/organizations.js';
-import { body, validationResult } from 'express-validator';
-import { isVolunteer } from '../models/volunteerModel.js';
+// src/controllers/projects.js
 
+// ==================== IMPORTS ====================
+import { body, validationResult } from 'express-validator';
+import { 
+    getUpcomingProjects, 
+    getProjectDetails, 
+    createProject, 
+    updateProject, 
+    deleteAllProjectCategories, 
+    addCategoryToProject 
+} from '../models/projects.js';
+import { getCategoriesForProject, getAllCategories } from '../models/categories.js';
+import { getAllOrganizations } from '../models/organization.js';
+import { isVolunteer, addVolunteer as addVolunteerToDb, removeVolunteer as removeVolunteerFromDb } from '../models/volunteerModel.js';
+
+// ==================== CONSTANTS ====================
 const NUMBER_OF_UPCOMING_PROJECTS = 5;
 
 // ==================== VALIDATION RULES ====================
-const projectValidation = [
+export const projectValidation = [
     body('title')
         .trim()
         .notEmpty().withMessage('Title is required')
@@ -30,27 +41,27 @@ const projectValidation = [
 
 // ==================== CONTROLLER FUNCTIONS ====================
 
-// Controller for the main projects page (shows upcoming projects)
-const showProjectsPage = async (req, res, next) => {
+// ----- LIST UPCOMING PROJECTS (Projects page) -----
+export const showProjectsPage = async (req, res, next) => {
     try {
         let projects = await getUpcomingProjects(NUMBER_OF_UPCOMING_PROJECTS);
         
-        // Ensure each project has an 'id' and a 'name' property for the view
+        // Normalize property names for consistent view rendering
         projects = projects.map(project => ({
             ...project,
-            id: project.project_id || project.id,   // use project_id if id missing
-            name: project.title || project.name     // use title if name missing
+            id: project.project_id || project.id,
+            name: project.title || project.name
         }));
         
         const title = 'Upcoming Service Projects';
-        res.render('projects', { title, projects });
+        res.render('projects', { title, projects, user: req.session.user || null });
     } catch (error) {
         next(error);
     }
 };
 
-// Controller for a single project details page (includes volunteer check)
-const showProjectDetailsPage = async (req, res, next) => {
+// ----- SINGLE PROJECT DETAILS (with volunteer check & categories) -----
+export const showProjectDetailsPage = async (req, res, next) => {
     try {
         const projectId = req.params.id;
         let project = await getProjectDetails(projectId);
@@ -61,7 +72,7 @@ const showProjectDetailsPage = async (req, res, next) => {
             return next(err);
         }
         
-        // Ensure project has an 'id' and 'name' property
+        // Normalize property names
         project = {
             ...project,
             id: project.project_id || project.id,
@@ -69,21 +80,24 @@ const showProjectDetailsPage = async (req, res, next) => {
         };
         
         // Get categories for this project
-        const categories = await getCategoriesForProject(projectId);
+        const assignedCategories = await getCategoriesForProject(projectId);
         
         // Check if logged-in user is a volunteer for this project
-        let userIsVolunteer = false;
+        let isVolunteerFlag = false;
         const user = req.session.user || null;
-        if (user && user.user_id) {  // assuming session stores user_id
-            userIsVolunteer = await isVolunteer(user.user_id, projectId);
+        if (user && user.user_id) {
+            isVolunteerFlag = await isVolunteer(user.user_id, projectId);
         }
+        
+        const isAdmin = user && user.role_name === 'admin';
         
         const title = project.name;
         res.render('project', { 
             title, 
             project, 
-            categories, 
-            userIsVolunteer,
+            assignedCategories,
+            userIsVolunteer: isVolunteerFlag,
+            isAdmin,
             user
         });
     } catch (error) {
@@ -91,42 +105,37 @@ const showProjectDetailsPage = async (req, res, next) => {
     }
 };
 
-// Controller to display the new project form (GET)
-const showNewProjectForm = async (req, res, next) => {
+// ----- CREATE PROJECT -----
+export const showCreateProjectForm = async (req, res, next) => {
     try {
         const organizations = await getAllOrganizations();
-        const title = 'Add New Service Project';
-        res.render('new-project', { title, organizations });
+        res.render('new-project', { title: 'Add New Project', project: null, organizations });
     } catch (error) {
         next(error);
     }
 };
 
-// Controller to process the new project form submission (POST)
-const processNewProjectForm = async (req, res, next) => {
-    // Check for validation errors
+export const createProjectHandler = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        errors.array().forEach((error) => {
-            req.flash('error', error.msg);
-        });
+        errors.array().forEach(err => req.flash('error', err.msg));
         return res.redirect('/new-project');
     }
 
     try {
         const { title, description, location, date, organizationId } = req.body;
         const newProjectId = await createProject(title, description, location, date, organizationId);
-        req.flash('success', 'New service project created successfully!');
+        req.flash('success', 'Project created successfully!');
         res.redirect(`/project/${newProjectId}`);
     } catch (error) {
-        console.error('Error creating new project:', error);
-        req.flash('error', 'There was an error creating the service project.');
+        console.error('Error creating project:', error);
+        req.flash('error', 'There was an error creating the project.');
         res.redirect('/new-project');
     }
 };
 
-// Controller to display the edit project form (GET)
-const showEditProjectForm = async (req, res, next) => {
+// ----- EDIT PROJECT -----
+export const showEditProjectForm = async (req, res, next) => {
     try {
         const projectId = req.params.id;
         let project = await getProjectDetails(projectId);
@@ -135,28 +144,22 @@ const showEditProjectForm = async (req, res, next) => {
             err.status = 404;
             return next(err);
         }
-        // Ensure project has id and name
         project = {
             ...project,
             id: project.project_id || project.id,
             name: project.title || project.name
         };
         const organizations = await getAllOrganizations();
-        const title = 'Edit Service Project';
-        res.render('update-project', { title, project, organizations });
+        res.render('update-project', { title: 'Edit Project', project, organizations });
     } catch (error) {
         next(error);
     }
 };
 
-// Controller to process the edit project form submission (POST)
-const processEditProjectForm = async (req, res, next) => {
-    // Check for validation errors
+export const editProjectHandler = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        errors.array().forEach((error) => {
-            req.flash('error', error.msg);
-        });
+        errors.array().forEach(err => req.flash('error', err.msg));
         return res.redirect(`/edit-project/${req.params.id}`);
     }
 
@@ -173,12 +176,83 @@ const processEditProjectForm = async (req, res, next) => {
     }
 };
 
-export { 
-    showProjectsPage, 
-    showProjectDetailsPage, 
-    showNewProjectForm, 
-    processNewProjectForm,
-    showEditProjectForm,
-    processEditProjectForm,
-    projectValidation
+// ----- ASSIGN CATEGORIES TO PROJECT -----
+export const showAssignCategoriesForm = async (req, res, next) => {
+    try {
+        const projectId = req.params.id;
+        let project = await getProjectDetails(projectId);
+        if (!project) {
+            req.flash('error', 'Project not found');
+            return res.redirect('/projects');
+        }
+        project = {
+            ...project,
+            id: project.project_id || project.id,
+            name: project.title || project.name
+        };
+        const allCategories = await getAllCategories();
+        const assignedCategories = await getCategoriesForProject(projectId);
+        const assignedIds = assignedCategories.map(c => c.id || c.category_id);
+        res.render('assign-categories', { title: 'Assign Categories to Project', project, allCategories, assignedIds });
+    } catch (error) {
+        next(error);
+    }
 };
+
+export const assignCategoriesHandler = async (req, res, next) => {
+    try {
+        const projectId = req.params.id;
+        let selectedCategories = req.body.categories || [];
+        if (!Array.isArray(selectedCategories)) {
+            selectedCategories = [selectedCategories];
+        }
+        
+        await deleteAllProjectCategories(projectId);
+        for (let catId of selectedCategories) {
+            await addCategoryToProject(projectId, catId);
+        }
+        
+        req.flash('success', 'Category assignments updated successfully!');
+        res.redirect(`/project/${projectId}`);
+    } catch (error) {
+        console.error('Error updating category assignments:', error);
+        req.flash('error', 'There was an error updating category assignments.');
+        res.redirect(`/assign-categories/${req.params.id}`);
+    }
+};
+
+// ==================== VOLUNTEER MANAGEMENT ====================
+export const addVolunteer = async (req, res, next) => {
+    try {
+        const projectId = req.params.id;
+        const userId = req.session.user.user_id;
+
+        await addVolunteerToDb(userId, projectId);
+        req.flash('success', 'You are now volunteering for this project.');
+        res.redirect(`/project/${projectId}`);
+    } catch (error) {
+        console.error('Error adding volunteer:', error);
+        req.flash('error', 'Unable to volunteer for this project.');
+        res.redirect(`/project/${projectId}`);
+    }
+};
+
+export const removeVolunteer = async (req, res, next) => {
+    try {
+        const projectId = req.params.id;
+        const userId = req.session.user.user_id;
+
+        await removeVolunteerFromDb(userId, projectId);
+        req.flash('success', 'You have been removed from this project.');
+        res.redirect(`/project/${projectId}`);
+    } catch (error) {
+        console.error('Error removing volunteer:', error);
+        req.flash('error', 'Unable to remove you from this project.');
+        res.redirect(`/project/${projectId}`);
+    }
+};
+
+// ==================== LEGACY ALIASES ====================
+export const showNewProjectForm = showCreateProjectForm;
+export const processNewProjectForm = createProjectHandler;
+export const processEditProjectForm = editProjectHandler;

@@ -1,0 +1,29 @@
+<!-- views/assign-categories.ejs -->
+<%- include('partials/header') %>
+
+<main>
+    <h1>Assign Categories to "<%= project.name %>"</h1>
+
+    <form method="POST">
+        <p>Select all categories that apply:</p>
+
+        <div class="form-group">
+            <% allCategories.forEach(cat => { %>
+                <label class="category-checkbox">
+                    <input type="checkbox"
+                           name="categories"
+                           value="<%= cat.id %>"
+                           <%= assignedIds.includes(cat.id) ? 'checked' : '' %>>
+                    <%= cat.name %>
+                </label><br>
+            <% }); %>
+        </div>
+
+        <div class="button-group">
+            <button type="submit" class="btn btn-primary">Save Assignments</button>
+            <a href="/projects/<%= project.id %>" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</main>
+
+<%- include('partials/footer') %>

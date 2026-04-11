@@ -1,0 +1,16 @@
+<h1>Service Categories</h1>
+
+<ul>
+    <% categories.forEach(category => { %>
+        <li>
+            <a href="/category/<%= category.category_id %>"><%= category.name %></a>
+            <% if (user && user.is_admin) { %>
+                – <a href="/categories/<%= category.category_id %>/edit">Edit</a>
+            <% } %>
+        </li>
+    <% }); %>
+</ul>
+
+<% if (user && user.is_admin) { %>
+    <a href="/categories/new">Add a New Category</a>
+<% } %>

@@ -1,11 +1,73 @@
-<% organizations.forEach(organization => { %>
-    <div class="org-card">
-        <h3>
-            <a href="/organization/<%= organization.organization_id %>">
-                <%= organization.name %>
-            </a>
-        </h3>
-        <p><%= organization.description %></p>
-        <!-- other fields like logo, email, etc. -->
-    </div>
-<% }); %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> | CSE 340</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('partials/header') %>
+
+    <main class="organizations-page">
+        <div class="container">
+            <div class="page-header">
+                <h1><%= title %></h1>
+                <% if (isAdmin) { %>
+                    <a href="/new-organization" class="btn btn-primary">+ Add New Organization</a>
+                <% } %>
+            </div>
+
+            <% if (organizations && organizations.length > 0) { %>
+                <div class="org-grid">
+                    <% organizations.forEach(org => { 
+                        // Map organization names to their logo filenames
+                        const nameToLogo = {
+                            'BrightFuture Builders': 'brightfuture-logo.png',
+                            'GreenHarvest Growers': 'greenharvest-logo.png',
+                            'UnityServe Volunteers': 'unityserve-logo.png'
+                        };
+                        const logoFile = nameToLogo[org.name] || 'placeholder-logo.png';
+                    %>
+                        <div class="org-card">
+                            <div class="org-logo">
+                                <img src="/images/<%= logoFile %>" 
+                                     alt="<%= org.name %> logo" 
+                                     class="org-logo-img"
+                                     onerror="this.onerror=null; this.src='/images/placeholder-logo.png';">
+                            </div>
+                            <div class="org-info">
+                                <h2><%= org.name %></h2>
+                                <p class="org-description"><%= org.description %></p>
+                                <div class="org-contact">
+                                    <i class="fas fa-envelope"></i>
+                                    <a href="mailto:<%= org.contact_email %>"><%= org.contact_email %></a>
+                                </div>
+                                <div class="org-actions">
+                                    <a href="/organization/<%= org.organization_id %>" class="btn btn-outline">View Projects →</a>
+                                    <% if (isAdmin) { %>
+                                        <a href="/edit-organization/<%= org.organization_id %>" class="btn btn-edit">Edit</a>
+                                        <form action="/delete-organization/<%= org.organization_id %>" method="POST" class="delete-form" onsubmit="return confirm('Delete this organization? All its projects will also be deleted.');">
+                                            <button type="submit" class="btn btn-delete">Delete</button>
+                                        </form>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+            <% } else { %>
+                <div class="empty-state">
+                    <p>No organizations found.</p>
+                    <% if (isAdmin) { %>
+                        <a href="/new-organization" class="btn btn-primary">Create the first organization</a>
+                    <% } %>
+                </div>
+            <% } %>
+        </div>
+    </main>
+
+    <%- include('partials/footer') %>
+</body>
+</html>

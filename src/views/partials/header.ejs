@@ -1,38 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
-    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+     <link rel="stylesheet" href="/css/main.css">
+    <script src="/script/navigation.js" defer></script>
 </head>
-<body>
-    <nav>
-        <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/organizations">Organizations</a></li>
-            <li><a href="/projects">Projects</a></li>
-            <li><a href="/categories">Categories</a></li>
-            <% if (isLoggedIn) { %>
-                <li>Welcome, <%= user.name %></li>
-                <li><a href="/logout">Logout</a></li>
-            <% } else { %>
-                <li><a href="/register">Register</a></li>
-                <li><a href="/login">Login</a></li>
-            <% } %>
-        </ul>
-    </nav>
 
-    <!-- Flash Messages Section -->
-    <% if (typeof flash === 'function') { %>
-        <% const messages = flash(); %>
-        <% Object.keys(messages).forEach(type => { %>
-            <% if (messages[type].length > 0) { %>
-                <div class="flash-messages flash-<%= type %>">
+<body>
+    <div class="header-bar">
+        <div class="header-flex">
+            <div class="logo-container">
+        <img src="/images/cse340-logo.png" alt="logo" width="35">
+            </div>
+            <div class="title-wrapper">
+                <span class="title-main">CSE 340</span>
+                <span class="title-sub">Service Network</span>
+            </div>
+        </div>
+
+        <nav class="navigation">
+            <button id="menu" aria-label="Toggle Menu">
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/organizations">Organizations</a></li>
+                <li><a href="/projects">Projects</a></li>
+                <li><a href="/categories">Categories</a></li>
+                <% if (!user) { %>
+                    <li><a href="/login">Login</a></li>
+                <% } else { %>
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><span>Welcome, <%= user.name %></span></li>
+                    <li><a href="/logout">Logout</a></li>
+                <% } %>
+            </ul>
+        </nav>
+
+        <div id="flash-container">
+            <% const messages = typeof flash === 'function' ? flash() : { success: [], error: [], warning: [], info: [] }; %>
+            <% Object.keys(messages).forEach(type => { %>
+                <% if (messages[type].length > 0) { %>
                     <% messages[type].forEach(msg => { %>
-                        <div class="flash-message"><%= msg %></div>
+                        <div class="toast toast-<%= type %>">
+                            <div class="toast-content">
+                                <span class="toast-icon"><%= type === 'success' ? '✓' : 'ℹ' %></span>
+                                <p class="toast-text"><%= msg %></p>
+                            </div>
+                            <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+                        </div>
                     <% }); %>
-                </div>
-            <% } %>
-        <% }); %>
-    <% } %>
+                <% } %>
+            <% }); %>
+        </div>
+    </div>

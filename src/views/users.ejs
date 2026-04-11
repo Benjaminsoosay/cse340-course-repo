@@ -1,0 +1,27 @@
+<%- include('partials/header') %>
+
+<main class="directory-container">
+    <header class="directory-header">
+        <h1><%= title %></h1>
+        <p class="subtitle">Manage and view all registered system users</p>
+    </header>
+    
+    <div class="user-grid">
+        <% users.forEach(user => { %>
+          <a href="/user/<%= user.user_id %>" class="user-card">
+            <div class="user-info">
+                <span class="user-name"><%= user.name %></span>
+                <span class="user-email"><%= user.email %></span>
+            </div>
+            <div class="user-badge-container">
+                <span class="role-badge badge-<%= user.role_name.toLowerCase() %>">
+                    <%= user.role_name %>
+                </span>
+            </div>
+            <span class="view-profile">Edit Profile &rarr;</span>
+          </a>
+        <% }); %>
+    </div>
+</main>
+
+<%- include('partials/footer') %>

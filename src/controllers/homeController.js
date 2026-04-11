@@ -1,7 +1,7 @@
-// src/controllers/homeController.js
-export function showHomePage(req, res) {
+// controllers/homeController.js
+export const showHomePage = (req, res) => {
     res.render('home', { 
-        title: 'Home', 
-        user: req.session.user || null 
+        title: 'Home',
+        user: req.session.user || null
     });
-}
+};
