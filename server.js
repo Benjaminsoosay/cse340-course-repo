@@ -4,8 +4,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import mainRoutes from './src/routes/index.js';
 import { testConnection } from './models/db.js';
-import pkg from 'pg';                     // for temporary route
-const { Pool } = pkg;                    // destructure Pool
+import pkg from 'pg';
+import bcrypt from 'bcrypt';
+
+const { Pool } = pkg;
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -89,20 +91,22 @@ app.use('/', mainRoutes);
 testConnection().catch(console.error);
 
 // ============================================
-// TEMPORARY ROUTE - upgrade grader@example.com to admin (PostgreSQL)
-// Remove after use
+// TEMPORARY ROUTE - create/update admin user
+// Visit /create-admin-user to run this
+// Remove after the grader confirms admin access
 // ============================================
-app.get('/make-grader-admin', async (req, res) => {
+app.get('/create-admin-user', async (req, res) => {
     const pool = new Pool({ connectionString: process.env.DATABASE_URL });
     try {
+        const hashedPassword = await bcrypt.hash('Admin123!', 10);
         const result = await pool.query(
-            `UPDATE users SET role = 'admin' WHERE email = 'grader@example.com' RETURNING email, role`
+            `INSERT INTO users (name, email, password, role)
+             VALUES ('Grader Admin', 'grader@example.com', $1, 'admin')
+             ON CONFLICT (email) DO UPDATE SET role = 'admin', password = $1
+             RETURNING email, role`,
+            [hashedPassword]
         );
-        if (result.rowCount > 0) {
-            res.send(`✅ Updated ${result.rows[0].email} to role: ${result.rows[0].role}`);
-        } else {
-            res.send('❌ User not found.');
-        }
+        res.send(`✅ Admin user ready: ${result.rows[0].email} (${result.rows[0].role})`);
     } catch (err) {
         res.send('Error: ' + err.message);
     } finally {
