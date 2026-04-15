@@ -1,9 +1,9 @@
+// src/routes/index.js
 import express from 'express';
 import bcrypt from 'bcrypt';
-import { MongoClient } from 'mongodb';          // ← added for temporary route
+import { MongoClient } from 'mongodb';
 
 // ==================== CONTROLLER IMPORTS ====================
-// Now pointing to ../controllers/ (adjust if your controllers are elsewhere)
 
 // Home
 import { showHomePage } from '../controllers/homeController.js';
@@ -202,7 +202,18 @@ router.get('/categories/:id/edit', requireLogin, requireRole('admin'), showEditC
 router.post('/categories/:id/edit', requireLogin, requireRole('admin'), categoryValidation, handleValidationErrors, editCategoryHandler);
 
 // ----- USER MANAGEMENT -----
+// Path expected by the assignment (used in dashboard link)
+router.get('/users', requireLogin, requireRole('admin'), showUsersPage);
+// Alternative admin path (kept for compatibility)
 router.get('/admin/users', requireLogin, requireRole('admin'), showUsersPage);
+
+// ============================================
+// ADDITIONAL ADMIN ROUTES FOR THE ASSIGNMENT
+// These match the exact hrefs used in dashboard.ejs
+// ============================================
+router.get('/organizations/create', requireLogin, requireRole('admin'), showCreateOrganizationForm);
+router.get('/projects/create', requireLogin, requireRole('admin'), showCreateProjectForm);
+router.get('/categories/create', requireLogin, requireRole('admin'), showCreateCategoryForm);
 
 // ============================================
 // VOLUNTEER ROUTES

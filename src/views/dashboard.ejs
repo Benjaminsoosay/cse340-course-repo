@@ -40,7 +40,7 @@
         <% } %>
     </section>
 
-    <!-- Admin Controls (updated with requested if statement and links) -->
+    <!-- Admin Controls (visible only to admin users) -->
     <% if (user && user.role === 'admin') { %>
         <hr>
         <h3>Admin Controls</h3>
