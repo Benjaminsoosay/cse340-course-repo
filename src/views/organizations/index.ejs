@@ -1,6 +1,11 @@
 <h1>Organizations</h1>
 <ul>
   <% organizations.forEach(org => { %>
-    <li><a href="/organizations/<%= org.id %>"><%= org.name %></a></li>
+    <li>
+      <a href="/organizations/<%= org.id %>"><%= org.name %></a>
+      <% if (user && user.role === 'admin') { %>
+        | <a href="/organizations/edit/<%= org.id %>">Edit</a>
+      <% } %>
+    </li>
   <% }) %>
 </ul>

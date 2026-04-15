@@ -1,0 +1,23 @@
+﻿<h1>Projects</h1>
+<% if (isAdmin) { %>
+  <a href="/projects/create" class="btn btn-primary mb-3">+ New Project</a>
+<% } %>
+<table class="table table-striped">
+  <thead><tr><th>Title</th><th>Organization</th><th>Date</th><th>Location</th><th>Actions</th> </thead>
+  <tbody>
+    <% projects.forEach(proj => { %>
+      <tr>
+        <td><%= proj.title %></td>
+        <td><%= proj.organization_name || proj.Organization?.name %></td>
+        <td><%= proj.date || proj.start_date %></td>
+        <td><%= proj.location %></td>
+        <td>
+          <a href="/projects/<%= proj.project_id || proj.id %>" class="btn btn-sm btn-info">View</a>
+          <% if (isAdmin) { %>
+            <a href="/projects/edit/<%= proj.project_id || proj.id %>" class="btn btn-sm btn-warning">Edit</a>
+          <% } %>
+         </td>
+       </tr>
+    <% }) %>
+  </tbody>
+</table>

@@ -1,0 +1,17 @@
+﻿<h1><%= project.title %></h1>
+<p><strong>Organization:</strong> <%= project.organization_name %></p>
+<p><strong>Description:</strong> <%= project.description || 'No description' %></p>
+<p><strong>Location:</strong> <%= project.location || 'Not specified' %></p>
+<p><strong>Date:</strong> <%= project.date ? new Date(project.date).toDateString() : 'TBD' %></p>
+<p><strong>Categories:</strong>
+  <% if (project.categories && project.categories.length) { %>
+    <ul><% project.categories.forEach(c => { %><li><%= c.name %></li><% }); %></ul>
+  <% } else { %>None<% } %>
+</p>
+<div>
+  <a href="/projects" class="btn btn-secondary">Back</a>
+  <% if (isAdmin) { %>
+    <a href="/projects/edit/<%= project.project_id || project.id %>" class="btn btn-warning">Edit</a>
+    <a href="/projects/<%= project.project_id || project.id %>/assign-categories" class="btn btn-info">Assign Categories</a>
+  <% } %>
+</div>

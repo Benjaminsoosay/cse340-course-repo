@@ -1,10 +1,11 @@
-// server.js
 import express from 'express';
 import session from 'express-session';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import mainRoutes from './src/routes/index.js';
 import { testConnection } from './models/db.js';
+import pkg from 'pg';                     // for temporary route
+const { Pool } = pkg;                    // destructure Pool
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -69,7 +70,7 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'src', 'views'));
 // =======================================
 
-// Make user available to all templates
+// Make user available to all templates (using session‑based user)
 app.use((req, res, next) => {
     res.locals.user = req.session.user || null;
     next();
@@ -86,6 +87,28 @@ app.use('/', mainRoutes);
 
 // Test database connection
 testConnection().catch(console.error);
+
+// ============================================
+// TEMPORARY ROUTE - upgrade grader@example.com to admin (PostgreSQL)
+// Remove after use
+// ============================================
+app.get('/make-grader-admin', async (req, res) => {
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    try {
+        const result = await pool.query(
+            `UPDATE users SET role = 'admin' WHERE email = 'grader@example.com' RETURNING email, role`
+        );
+        if (result.rowCount > 0) {
+            res.send(`✅ Updated ${result.rows[0].email} to role: ${result.rows[0].role}`);
+        } else {
+            res.send('❌ User not found.');
+        }
+    } catch (err) {
+        res.send('Error: ' + err.message);
+    } finally {
+        await pool.end();
+    }
+});
 
 // Start server
 app.listen(PORT, () => {

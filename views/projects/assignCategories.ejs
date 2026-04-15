@@ -1,0 +1,13 @@
+﻿<h1>Assign Categories to "<%= project.title %>"</h1>
+<form method="POST">
+  <div class="form-group">
+    <% allCategories.forEach(cat => { %>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" name="categories" value="<%= cat.id %>" id="cat<%= cat.id %>" <%= assignedIds.includes(cat.id) ? 'checked' : '' %>>
+        <label class="form-check-label" for="cat<%= cat.id %>"><%= cat.name %></label>
+      </div>
+    <% }) %>
+  </div>
+  <button type="submit" class="btn btn-primary mt-3">Save Assignments</button>
+  <a href="/projects/<%= project.project_id || project.id %>" class="btn btn-secondary mt-3">Cancel</a>
+</form>

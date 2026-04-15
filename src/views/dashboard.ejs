@@ -1,4 +1,3 @@
-<!-- views/dashboard.ejs -->
 <%- include('partials/header') %>
 
 <main>
@@ -41,21 +40,16 @@
         <% } %>
     </section>
 
-    <!-- Admin Section -->
-    <% if (user && (user.role_name === 'admin' || user.is_admin === true)) { %>
+    <!-- Admin Controls (updated with requested if statement and links) -->
+    <% if (user && user.role === 'admin') { %>
         <hr>
-        <section class="admin-panel">
-            <h2>Admin Panel</h2>
-            <div class="admin-actions">
-                <a href="/new-organization" class="btn btn-secondary">Create New Organization</a>
-                <a href="/new-project" class="btn btn-secondary">Create New Project</a>
-                <a href="/new-category" class="btn btn-secondary">Create New Category</a>
-                <a href="/admin/users" class="btn btn-secondary">Manage Users</a>
-                <a href="/organizations" class="btn btn-secondary">View All Organizations</a>
-                <a href="/projects" class="btn btn-secondary">View All Projects</a>
-                <a href="/categories" class="btn btn-secondary">View All Categories</a>
-            </div>
-        </section>
+        <h3>Admin Controls</h3>
+        <ul>
+            <li><a href="/organizations/create">Create Organization</a></li>
+            <li><a href="/projects/create">Create Project</a></li>
+            <li><a href="/categories/create">Create Category</a></li>
+            <li><a href="/users">Manage Users</a></li>
+        </ul>
     <% } %>
 
     <!-- Logout Button -->

@@ -1,6 +1,6 @@
-// routes/index.js
-
 import express from 'express';
+import bcrypt from 'bcrypt';
+import User from '../models/User.js';        // adjust path if needed
 
 // ==================== CONTROLLER IMPORTS ====================
 
@@ -106,6 +106,24 @@ router.get('/logout', processLogout);
 
 // Protected dashboard (any logged-in user)
 router.get('/dashboard', requireLogin, showDashboard);
+
+// ============================================
+// TEMPORARY ADMIN CREATION ROUTE - REMOVE AFTER FIRST USE
+// ============================================
+router.get('/create-admin', async (req, res) => {
+    try {
+        const hashed = await bcrypt.hash('Admin123!', 10);
+        await User.create({
+            name: 'Admin',
+            email: 'grader@example.com',
+            password: hashed,
+            role: 'admin'
+        });
+        res.send('Admin created successfully!');
+    } catch (err) {
+        res.send('Error: ' + err.message);
+    }
+});
 
 // ============================================
 // ADMIN-ONLY ROUTES (require login + admin role)

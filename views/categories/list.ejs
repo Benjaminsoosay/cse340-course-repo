@@ -1,0 +1,20 @@
+﻿<h1>Categories</h1>
+<% if (isAdmin) { %>
+  <a href="/categories/create" class="btn btn-primary mb-3">+ New Category</a>
+<% } %>
+<table class="table table-striped">
+  <thead><tr><th>Name</th><th>Actions</th> </thead>
+  <tbody>
+    <% categories.forEach(cat => { %>
+      <tr>
+        <td><%= cat.name %></td>
+        <td>
+          <a href="/categories/<%= cat.id %>" class="btn btn-sm btn-info">View</a>
+          <% if (isAdmin) { %>
+            <a href="/categories/edit/<%= cat.id %>" class="btn btn-sm btn-warning">Edit</a>
+          <% } %>
+         </td>
+       </tr>
+    <% }) %>
+  </tbody>
+</table>

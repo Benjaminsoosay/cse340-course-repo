@@ -1,0 +1,7 @@
+﻿<h1><%= organization.name %></h1>
+<p><strong>Description:</strong> <%= organization.description || 'No description' %></p>
+<p><strong>Contact Email:</strong> <%= organization.contact_email || 'Not provided' %></p>
+<a href="/organizations" class="btn btn-secondary">Back to list</a>
+<% if (isAdmin) { %>
+  <a href="/organizations/edit/<%= organization.organization_id %>" class="btn btn-warning">Edit</a>
+<% } %>
